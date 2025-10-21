@@ -1,0 +1,14 @@
+@PACKAGE_INIT@
+
+# Define include and library paths (optional)
+set(UPSTREAMER_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/../../include")
+set(UPSTREAMER_LIBRARY_DIR "${CMAKE_CURRENT_LIST_DIR}/../../lib")
+
+# Include the exported targets
+include("${CMAKE_CURRENT_LIST_DIR}/udp_streaming_libTargets.cmake")
+
+# Provide information for find_package version checking
+if(NOT DEFINED upstreamer_VERSION)
+    set(upstreamer_VERSION "0.1")
+endif()
+
