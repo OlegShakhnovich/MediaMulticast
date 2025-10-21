@@ -21,7 +21,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     # The type of runner that the job will run on
-    runs-on: $ {{ matrix.os}}
+    runs-on: ${{ matrix.os }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -29,16 +29,69 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
+      - name: Show environment
+        run: |
+          echo "OS information:"
+          uname -a || systeminfo
+          echo "CMake version:"
+          cmake --version
+          echo "Compiler version:"
+          g++ --version || clang++ --version || cl
+          echo "PATH:"
+          echo $PATH
+
+      - name: Cache CMake build
+        uses: actions/cache@v3
+        with:
+          path: build
+          key: ${{ runner.os }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
+
+      - name: Install ccache on macOS
+        if: runner.os == 'macOS'
+        run: brew install ccache
+        
       - name: Configure build
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20
-      # Runs a set of commands using the runners shell
-      - name: Build
-        run: |
-          cmake --build build --config Release
-      # Runs a set of commands using the runners shell
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build library (Unix)
+        if: runner.os != 'Windows'
+        run: cmake --build build --target udp_streaming_lib --config Release --parallel -- -Werror
+
+      - name: Build library (Windows)
+        if: runner.os == 'Windows'
+        run: cmake --build build --target udp_streaming_lib --config Release --parallel -- /WX
+
+      - name: Build executable (Unix)
+        if: runner.os != 'Windows'
+        run: cmake --build build --target udp_streamer --config Release --parallel -- -Werror
+
+      - name: Build executable (Windows)
+        if: runner.os == 'Windows'
+        run: cmake --build build --target udp_streamer --config Release --parallel -- /WX
+
+
       - name: Test
         run: |
           cd build
-          ctest --output-on-failure || true
+          ctest --output-on-failure --parallel || true
+
+      - name: Install project
+        run: cmake --install build --config Release
+
+      - name: Show CMake configuration
+        run: cmake --build build --target help
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-binaries
+          path: build
+          
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-test-results
+          path: build/Testing
