@@ -74,7 +74,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_PREFIX=$PWD\install
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_PREFIX=$PWD\install -DCMAKE_CXX_FLAGS="/W4 /WX"
 
 
       - name: Build library (Unix)
@@ -83,7 +83,7 @@ jobs:
 
       - name: Build library (Windows)
         if: runner.os == 'Windows'
-        run: cmake --build build --target udp_streaming_lib --config Release --parallel -- /WX
+        run: cmake --build build --target udp_streaming_lib --config Release --parallel
 
       - name: Build executable (Unix)
         if: runner.os != 'Windows'
@@ -91,7 +91,7 @@ jobs:
 
       - name: Build executable (Windows)
         if: runner.os == 'Windows'
-        run: cmake --build build --target udp_streamer --config Release --parallel -- /WX
+        run: cmake --build build --target udp_streamer --config Release --parallel
 
 
       - name: Test
