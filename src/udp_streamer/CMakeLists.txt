@@ -18,9 +18,9 @@ target_compile_definitions (udp_streamer PRIVATE
 
 
 if(MSVC)
-    target_compile_options (udp_streamer PRIVATE /W4 /permissive-)
+    target_compile_options (udp_streamer PRIVATE /W4 /permissive- /EHsc /WX)
 else()
-    target_compile_options (udp_streamer PRIVATE -Wall -Wextra -pedantic)
+    target_compile_options (udp_streamer PRIVATE -Wall -Wextra -pedantic -Werror)
 endif()
 
 

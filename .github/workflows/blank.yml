@@ -27,16 +27,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show environment
+      - name: Show environment (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
           echo "OS information:"
-          uname -a || systeminfo
+          uname -a
           echo "CMake version:"
           cmake --version
           echo "Compiler version:"
-          g++ --version || clang++ --version || cl
+          g++ --version || clang++ --version
           echo "PATH:"
-          echo $PATH
+          echo "$PATH"
+
+      - name: Show environment (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "OS information:"
+          systeminfo
+          Write-Host "CMake version:"
+          cmake --version
+          Write-Host "Compiler version:"
+          cl
+          Write-Host "PATH:"
+          Write-Host $env:PATH
 
       - name: Cache CMake build
         uses: actions/cache@v3
@@ -53,13 +68,7 @@ jobs:
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             brew install ccache
           fi
-
-      - name: Install dependencies (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          choco install ccache --no-progress || echo "ccache not available via Chocolatey"  
-          
+   
       - name: Configure build (Unix)
         if: runner.os != 'Windows'
         shell: bash
@@ -74,12 +83,12 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_PREFIX=$PWD\install -DCMAKE_CXX_FLAGS="/W4 /WX"
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_PREFIX=$PWD\install
 
 
       - name: Build library (Unix)
         if: runner.os != 'Windows'
-        run: cmake --build build --target udp_streaming_lib --config Release --parallel -- -Werror
+        run: cmake --build build --target udp_streaming_lib --config Release --parallel
 
       - name: Build library (Windows)
         if: runner.os == 'Windows'
@@ -87,7 +96,7 @@ jobs:
 
       - name: Build executable (Unix)
         if: runner.os != 'Windows'
-        run: cmake --build build --target udp_streamer --config Release --parallel -- -Werror
+        run: cmake --build build --target udp_streamer --config Release --parallel
 
       - name: Build executable (Windows)
         if: runner.os == 'Windows'
