@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: C++ CI
 
 # Controls when the workflow will run
@@ -46,13 +44,22 @@ jobs:
           path: build
           key: ${{ runner.os }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
 
-      - name: Install ccache on macOS
-        if: runner.os == 'macOS'
-        run: brew install ccache
+      - name: Install dependencies
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get update && sudo apt-get install -y ccache
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew install ccache
+          fi
+
         
       - name: Configure build
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          if command -v ccache >/dev/null 2>&1; then
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          else
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20
+          fi
 
       - name: Build library (Unix)
         if: runner.os != 'Windows'
