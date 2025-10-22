@@ -1,8 +1,6 @@
-#include <iostream>
 #include "file_reader/file_reader.hpp"
 
-int main() {
-    FileReader fr;
-    fr.doSomething();
+auto main() -> int {
+    FileReader::doSomething();
     return 0;
 }

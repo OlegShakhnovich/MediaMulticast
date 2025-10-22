@@ -3,5 +3,5 @@
 
 class UDP_STREAMING_LIB_API FileReader {
 public:
-    void doSomething();
+    static void doSomething();
 };
