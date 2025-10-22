@@ -44,7 +44,9 @@ jobs:
           path: build
           key: ${{ runner.os }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
 
-      - name: Install dependencies
+      - name: Install dependencies (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             sudo apt-get update && sudo apt-get install -y ccache
@@ -52,7 +54,12 @@ jobs:
             brew install ccache
           fi
 
-        
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install ccache --no-progress || echo "ccache not available via Chocolatey"  
+          
       - name: Configure build
         run: |
           if command -v ccache >/dev/null 2>&1; then
