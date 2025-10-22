@@ -1,0 +1,8 @@
+BasedOnStyle: Google
+IndentWidth: 4
+ContinuationIndentWidth: 4
+NamespaceIndentation: All
+AccessModifierOffset: -4 
+AlignAfterOpenBracket: DontAlign
+ColumnLimit: 120
+UseTab: Never
