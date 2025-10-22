@@ -46,10 +46,30 @@ jobs:
         run: |
           Write-Host "OS information:"
           systeminfo
+
           Write-Host "CMake version:"
           cmake --version
-          Write-Host "Compiler version:"
-          cl
+
+          Write-Host "Compiler version (try cl):"
+          if (Get-Command cl -ErrorAction SilentlyContinue) {
+            cl
+          } else {
+            Write-Host "cl not found in PATH"
+            $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
+            if (Test-Path $vswhere) {
+              $inst = & $vswhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -products * -property installationPath
+              if ($inst) {
+                Write-Host "Found VS at: $inst. Sourcing vcvarsall.bat x64..."
+                & "$inst\VC\Auxiliary\Build\vcvarsall.bat" x64
+                if (Get-Command cl -ErrorAction SilentlyContinue) { cl } else { Write-Host "cl still not found after vcvarsall" }
+              } else {
+                Write-Host "vswhere did not locate a VS installation with VC tools."
+              }
+            } else {
+              Write-Host "vswhere not found at expected path: $vswhere"
+            }
+          }
+          
           Write-Host "PATH:"
           Write-Host $env:PATH
 
@@ -83,9 +103,21 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          # Ensure MSVC environment is initialized for this PowerShell session
+         $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
+          if (Test-Path $vswhere) {
+            $inst = & $vswhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -products * -property installationPath
+            if ($inst) {
+              & "$inst\VC\Auxiliary\Build\vcvarsall.bat" x64
+            } else {
+              Write-Host "vswhere found, but no VC tools installation matched."
+            }
+          } else {
+            Write-Host "vswhere not found; attempting to proceed (CMake may still detect compiler)."
+          }
+
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_PREFIX=$PWD\install
-
-
+          
       - name: Build library (Unix)
         if: runner.os != 'Windows'
         run: cmake --build build --target udp_streaming_lib --config Release --parallel
