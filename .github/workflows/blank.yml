@@ -39,6 +39,7 @@ jobs:
           fi
           
       - name: Check LLVM version (Windows)
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $minVersion = [Version]"18.1.8"
