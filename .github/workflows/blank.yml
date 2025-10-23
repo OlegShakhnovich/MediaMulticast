@@ -81,8 +81,33 @@ jobs:
         shell: bash
         run: |
           echo "Running clang-format check..."
-          FILES=$(find src include -regex '.*\.\(cpp\|hpp\|h\|cc\)$')
-          clang-format --dry-run --Werror $FILES
+          if command -v clang-format >/dev/null 2>&1; then
+            CF=clang-format
+          elif [[ -n "${BREW_LLVM_BIN:-}" && -x "${BREW_LLVM_BIN}/clang-format" ]]; then
+            CF="${BREW_LLVM_BIN}/clang-format"
+          else
+            if command -v brew >/dev/null 2>&1; then
+              brew install llvm
+              export BREW_LLVM_BIN="$(brew --prefix llvm)/bin"
+              CF="${BREW_LLVM_BIN}/clang-format"
+            else
+              echo "clang-format not found and brew unavailable. Failing."
+              exit 1
+            fi
+          fi
+
+          mapfile -t files < <(find src include -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' \))
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No source files found."
+            exit 0
+          fi
+          
+          echo "Using clang-format at: $CF"
+          rc=0
+          for f in "${files[@]}"; do
+            "$CF" --dry-run --Werror "$f" || rc=1
+          done
+          exit $rc
 
       - name: Check formatting with clang-format (Windows)
         if: runner.os == 'Windows'
