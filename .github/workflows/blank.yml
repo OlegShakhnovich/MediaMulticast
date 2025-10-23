@@ -36,7 +36,34 @@ jobs:
             brew install llvm
             echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
           fi
-
+      - name: Check LLVM version (Windows)
+        shell: pwsh
+        run: |
+          $minVersion = [Version]"18.1.8"
+          $clangVersionStr = & clang --version 2>$null
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "clang not found, installing LLVM..."
+              choco install llvm -y
+          } else {
+              $versionMatch = $clangVersionStr -match "clang version (\d+\.\d+\.\d+)"
+              if ($versionMatch) {
+                  $currentVersion = [Version]$Matches[1]
+                  if ($currentVersion -lt $minVersion) {
+                      Write-Host "Current LLVM version $currentVersion is older than $minVersion. Upgrading..."
+                      choco install llvm -y --allow-downgrade
+                  } else {
+                      Write-Host "LLVM version $currentVersion is OK."
+                  }
+              } else {
+                  Write-Host "Could not parse clang version. Installing LLVM..."
+                  choco install llvm -y
+              }
+          }
+          
+      - name: Add LLVM to PATH
+        shell: pwsh
+        run: echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
+        
       - name: Install clang tools (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
