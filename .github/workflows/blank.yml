@@ -36,6 +36,7 @@ jobs:
             brew install llvm
             echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
           fi
+          
       - name: Check LLVM version (Windows)
         shell: pwsh
         run: |
@@ -45,9 +46,8 @@ jobs:
               Write-Host "clang not found, installing LLVM..."
               choco install llvm -y
           } else {
-              $versionMatch = $clangVersionStr -match "clang version (\d+\.\d+\.\d+)"
-              if ($versionMatch) {
-                  $currentVersion = [Version]$Matches[1]
+              if ($clangVersionStr -match "(clang|LLVM)(\.exe)? version (\d+(\.\d+){1,3})") {
+                  $currentVersion = [Version]$Matches[3]
                   if ($currentVersion -lt $minVersion) {
                       Write-Host "Current LLVM version $currentVersion is older than $minVersion. Upgrading..."
                       choco install llvm -y --allow-downgrade
