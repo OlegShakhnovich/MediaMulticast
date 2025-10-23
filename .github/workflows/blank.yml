@@ -156,7 +156,7 @@ jobs:
         shell: pwsh
         run: |
           # Ensure MSVC environment is initialized for this PowerShell session
-         $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
+          $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
           if (Test-Path $vswhere) {
             $inst = & $vswhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -products * -property installationPath
             if ($inst) {
