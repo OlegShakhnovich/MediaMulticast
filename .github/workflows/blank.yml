@@ -273,9 +273,6 @@ jobs:
       - name: Install project
         run: cmake --install build --config Release
 
-      - name: Show CMake configuration
-        run: cmake --build build --target help
-
       - name: Upload build artifacts
         if: success()
         uses: actions/upload-artifact@v4
