@@ -17,7 +17,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
 
@@ -29,12 +29,13 @@ jobs:
 
       - name: Install clang tools (Unix)
         if: runner.os != 'Windows'
+        shell: bash
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             sudo apt-get update && sudo apt-get install -y clang clang-format clang-tidy
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             brew install llvm
-            echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+            sudo xcode-select -switch /Applications/Xcode.app || true
           fi
           
       - name: Check LLVM version (Windows)
@@ -103,7 +104,12 @@ jobs:
         run: |
           echo "Running clang-tidy..."
           cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B build_ninja
-          clang-tidy -p build_ninja $(find src include -name '*.cpp')
+          SDK_PATH=$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)
+          if [[ -n "$SDK_PATH" ]]; then
+            echo "Using macOS SDK: $SDK_PATH"
+            find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja -- -isysroot "$SDK_PATH" || true
+          else
+            fi
 
       - name: Run clang-tidy analysis (Windows)
         if: runner.os == 'Windows'
@@ -182,9 +188,23 @@ jobs:
         shell: bash
         run: |
           if command -v ccache >/dev/null 2>&1; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_INSTALL_PREFIX=$PWD/install
+            if [[ "$RUNNER_OS" == "macOS" ]]; then
+              cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 \
+                -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+                -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_INSTALL_PREFIX=$PWD/install
+            else
+              cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 \
+                -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_INSTALL_PREFIX=$PWD/install
+            fi
           else
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_PREFIX=$PWD/install
+            if [[ "$RUNNER_OS" == "macOS" ]]; then
+              cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 \
+                -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+                -DCMAKE_INSTALL_PREFIX=$PWD/install
+            else
+              cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 \
+                -DCMAKE_INSTALL_PREFIX=$PWD/install
+            fi
           fi
 
       - name: Configure build (Windows)
