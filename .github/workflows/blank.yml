@@ -114,6 +114,7 @@ jobs:
           $files = Get-ChildItem -Recurse -Include *.cpp src,include
           foreach ($f in $files) {
               clang-tidy -p build_ninja $f.FullName
+          }
 
       - name: Show environment (Unix)
         if: runner.os != 'Windows'
