@@ -27,6 +27,58 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install clang tools (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get update && sudo apt-get install -y clang clang-format clang-tidy
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew install llvm
+            echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+          fi
+
+      - name: Install clang tools (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install llvm --version=18.1.8 -y
+          echo "C:\Program Files\LLVM\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+
+      - name: Check formatting with clang-format (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          echo "Running clang-format check..."
+          FILES=$(find src include -regex '.*\.\(cpp\|hpp\|h\|cc\)$')
+          clang-format --dry-run --Werror $FILES
+
+      - name: Check formatting with clang-format (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "Running clang-format check..."
+          $files = Get-ChildItem -Recurse -Include *.cpp,*.hpp,*.h,*.cc src,include
+          foreach ($f in $files) {
+              clang-format --dry-run --Werror $f.FullName
+          }
+      - name: Run clang-tidy analysis (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          echo "Running clang-tidy..."
+          cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B build_ninja
+          clang-tidy -p build_ninja $(find src include -name '*.cpp')
+
+      - name: Run clang-tidy analysis (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "Running clang-tidy..."
+          cmake -G "Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B build_ninja
+          $files = Get-ChildItem -Recurse -Include *.cpp src,include
+          foreach ($f in $files) {
+              clang-tidy -p build_ninja $f.FullName
+
       - name: Show environment (Unix)
         if: runner.os != 'Windows'
         shell: bash
