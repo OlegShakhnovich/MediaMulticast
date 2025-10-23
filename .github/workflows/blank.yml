@@ -270,14 +270,19 @@ jobs:
         if: runner.os == 'Windows'
         run: cmake --build build --target udp_streamer --config Release --parallel
 
-
       - name: Test
         run: |
           cd build
           ctest --output-on-failure --parallel || true
 
       - name: Install project
-        run: cmake --install build --config Release
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            cmake --install build --config Release --prefix "$PWD/install"
+          else
+            cmake --install build --config Release
+          fi
 
       - name: Upload build artifacts
         if: success()
