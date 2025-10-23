@@ -129,6 +129,7 @@ jobs:
             echo "Using macOS SDK: $SDK_PATH"
             find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja -- -isysroot "$SDK_PATH" || true
           else
+            find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja || true
           fi
 
       - name: Run clang-tidy analysis (Windows)
