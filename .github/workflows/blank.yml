@@ -73,13 +73,6 @@ jobs:
       - name: Add LLVM to PATH
         shell: pwsh
         run: echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
-        
-      - name: Install clang tools (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          choco install llvm --version=18.1.8 -y
-          echo "C:\Program Files\LLVM\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
 
       - name: Check formatting with clang-format (Unix)
         if: runner.os != 'Windows'
