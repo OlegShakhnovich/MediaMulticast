@@ -85,17 +85,23 @@ jobs:
             CF=clang-format
           elif [[ -n "${BREW_LLVM_BIN:-}" && -x "${BREW_LLVM_BIN}/clang-format" ]]; then
             CF="${BREW_LLVM_BIN}/clang-format"
+          elif command -v brew >/dev/null 2>&1; then
+            brew install llvm
+            export BREW_LLVM_BIN="$(brew --prefix llvm)/bin"
+            CF="${BREW_LLVM_BIN}/clang-format"
           else
-            if command -v brew >/dev/null 2>&1; then
-              brew install llvm
-              export BREW_LLVM_BIN="$(brew --prefix llvm)/bin"
-              CF="${BREW_LLVM_BIN}/clang-format"
-            else
-              echo "clang-format not found and brew unavailable. Failing."
-              exit 1
-            fi
+            echo "clang-format not found and brew unavailable. Failing."
+            exit 1
           fi
 
+          echo "Using clang-format at: $CF"
+          rc=0
+          
+          while IFS= read -r -d '' f; do
+            "$CF" --dry-run --Werror "$f" || rc=1
+          done < <(find src include -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' \) -print0)
+          exit $rc
+          
           mapfile -t files < <(find src include -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' \))
           if [ "${#files[@]}" -eq 0 ]; then
             echo "No source files found."
