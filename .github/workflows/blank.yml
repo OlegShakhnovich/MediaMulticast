@@ -42,27 +42,31 @@ jobs:
         run: |
           $minVersion = [Version]"18.1.8"
           $clangVersionStr = & clang --version 2>$null
-
-          if ($LASTEXITCODE -ne 0) {
-              Write-Host "clang not found, installing LLVM..."
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($clangVersionStr)) {
+              Write-Host "clang not found or produced no output. Installing LLVM via choco..."
               choco install llvm -y
-          } elseif ($clangVersionStr -match "(clang|LLVM)(\.exe)? version (\d+(\.\d+){1,3})") {
-              $versionMatch = $Matches[3]
-              if ($versionMatch) {
-                  $currentVersion = [Version]$versionMatch
-                  if ($currentVersion -lt $minVersion) {
-                      Write-Host "Current LLVM version $currentVersion is older than $minVersion. Installing/Updating..."
-                      choco upgrade llvm -y
-                  } else {
-                     Write-Host "LLVM version $currentVersion is sufficient. Skipping installation."
+          } else {
+              $pattern = '(?i)(?:clang|llvm)(?:\.exe)?\s*(?:version)?\s*([\d]+(?:\.[\d]+){1,3})'
+              $m = [regex]::Match($clangVersionStr, $pattern)
+
+              if ($m.Success -and -not [string]::IsNullOrWhiteSpace($m.Groups[1].Value)) {
+                  $verStr = $m.Groups[1].Value
+                  try {
+                      $currentVersion = [Version]$verStr
+                      if ($currentVersion -lt $minVersion) {
+                          Write-Host "Current LLVM version $currentVersion is older than $minVersion. Upgrading..."
+                          choco upgrade llvm -y
+                      } else {
+                          Write-Host "LLVM version $currentVersion is sufficient. Skipping install."
+                      }
+                  } catch {
+                      Write-Host "Parsed version '$verStr' but failed to convert to System.Version. Installing/Upgrading LLVM as fallback..."
+                      choco install llvm -y
                   }
               } else {
-                  Write-Host "Could not parse version number. Installing LLVM..."
+                  Write-Host "Could not parse clang/LLVM version output. Installing/Upgrading LLVM as fallback..."
                   choco install llvm -y
               }
-          } else {
-              Write-Host "Could not parse clang version. Installing LLVM..."
-              choco install llvm -y
           }
           
       - name: Add LLVM to PATH
