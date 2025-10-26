@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stddef.h>  
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef _WIN32
