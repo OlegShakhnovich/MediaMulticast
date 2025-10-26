@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>  
 #include <stdint.h>
 
 #ifdef _WIN32
@@ -67,13 +68,13 @@ extern "C" {
  *   without a port number. The library automatically detects the address type
  *   based on its format.
  *
- *   - **IPv4 format:** `"192.168.1.10"`
- *   - **IPv6 format:** `"2001:db8::1"` or `"::1"`
+ *   - **IPv4 format:** "192.168.1.10"
+ *   - **IPv6 format:** "2001:db8::1" or "::1"
  *
  *   Multicast addresses are also supported:
  *
- *   - **IPv4 multicast range:** `224.0.0.0` – `239.255.255.255` (`224.0.0.0/4`)
- *   - **IPv6 multicast range:** `FF00::/8` (all addresses beginning with `FF`)
+ *   - **IPv4 multicast range:** 224.0.0.0 - 239.255.255.255 (224.0.0.0/4)
+ *   - **IPv6 multicast range:** FF00::/8 (all addresses beginning with FF)
  *
  *   Example:
  *   @code
