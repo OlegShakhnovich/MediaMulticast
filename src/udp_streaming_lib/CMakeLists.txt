@@ -13,7 +13,7 @@ set (UDP_STREAMING_LIB_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/queueing/queue.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/timed_streaming/timer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/networking/udp_multicast.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/udp_streaming_lib_export.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/udp_streaming_lib_export.h
 )
 
 
