@@ -4,6 +4,7 @@ add_library (udp_streaming_lib SHARED
     queueing/queue.cpp
     timed_streaming/timer.cpp
     networking/udp_multicast.cpp
+    udp_streaming_lib.cpp
 )
 
 
@@ -15,6 +16,7 @@ set (UDP_STREAMING_LIB_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/networking/udp_multicast.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/logger/logger.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/logger/logger_macros.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/networking/net_utils.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/udp_streaming_lib_export.h
 )
 
@@ -103,4 +105,5 @@ source_group (TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES
     queueing/queue.cpp
     timed_streaming/timer.cpp
     networking/udp_multicast.cpp
+    udp_streaming_lib.cpp
 )
