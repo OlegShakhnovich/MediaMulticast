@@ -19,8 +19,7 @@ inline void logVar(
     oss.str({});
     oss.clear();
     oss << name << " = " << std::forward<T>(value);
-    Logger::instance().log(
-        Lvl, loc.file_name(), loc.line(), oss.str());
+    Logger::instance().log(Lvl, loc.file_name(), loc.line(), oss.str());
 }
 
 template <typename... Args>
