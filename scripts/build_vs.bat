@@ -27,8 +27,26 @@ if exist "%INSTALL_DIR%" (
     rmdir /s /q "%INSTALL_DIR%" >nul 2>&1
 )
 
+rem === Detect latest installed Visual Studio using vswhere ===
+set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+for /f "usebackq tokens=*" %%V in (`"%VSWHERE%" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationVersion`) do set "VS_VER=%%V"
+
+rem === Choose generator based on VS version ===
+set "GENERATOR="
+for /f "tokens=1 delims=." %%a in ("%VS_VER%") do set "MAJOR_VER=%%a"
+if "%MAJOR_VER%"=="16" set "GENERATOR=Visual Studio 16 2019"
+if "%MAJOR_VER%"=="17" set "GENERATOR=Visual Studio 17 2022"
+
+if "%GENERATOR%"=="" (
+    echo No supported Visual Studio version found.
+    pause
+    exit /b 1
+)
+
+echo Using generator: %GENERATOR%
+
 rem === Build and install ===
-cmake -S "%PROJECT_ROOT%" -B "%BUILD_DIR%" -G "Visual Studio 17 2022" -A x64
+cmake -S "%PROJECT_ROOT%" -B "%BUILD_DIR%" -G "%GENERATOR%" -A x64
 if errorlevel 1 goto err
 
 cmake --build "%BUILD_DIR%" --config Release
