@@ -113,7 +113,6 @@ class Logger {
             oss << std::put_time(&localTm, "%Y-%m-%d %H:%M:%S");
             lastSecondsStr = oss.str();
             lastSeconds = static_cast<std::time_t>(SECONDS);
-            std::cout << std::flush;
         }
 
         oss.str({});
