@@ -144,9 +144,9 @@ extern "C" {
  */
 UDP_STREAMING_LIB_API
 UdpStreaminLibResult startFileStreaming(
-    char * filename,
+    char* filename,
     uint32_t filenameLength,
-    char * address,
+    char* address,
     uint32_t addrLength,
     uint16_t port,
     StreamingCallback callback = NULL,

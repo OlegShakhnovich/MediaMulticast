@@ -44,9 +44,14 @@ class Logger {
 
     template <typename... Args>
     void log(
-        LogLevel lvl, std::string_view file, uint32_t line, Args &&... args) {
+        LogLevel lvl,
+        std::string_view file,
+        uint32_t line,
+        Args&&... args) {
         const auto CURRENT_LEVEL = logLevel.load(std::memory_order_relaxed);
-        if ((CURRENT_LEVEL == LogLevel::OFF) || (lvl < CURRENT_LEVEL)) return;
+        if ((CURRENT_LEVEL == LogLevel::OFF) || (lvl < CURRENT_LEVEL)) {
+            return;
+        }
 
         thread_local std::ostringstream threadOss;
         threadOss.str({});
@@ -67,11 +72,11 @@ class Logger {
     }
 
     template <LogLevel Lvl, typename... Args>
-    void logMsg(Args &&... args) {
+    void logMsg(Args&&... args) {
         log(Lvl, "", 0U, std::forward<Args>(args)...);
     }
 
-    static auto instance() noexcept -> Logger & {
+    static auto instance() noexcept -> Logger& {
         static Logger inst;
         return inst;
     }
@@ -91,10 +96,8 @@ class Logger {
     static auto timestamp() -> std::string {
         using namespace std::chrono;
         const auto NOW = system_clock::now();
-        const auto SECONDS =
-            duration_cast<std::chrono::seconds>(NOW.time_since_epoch()).count();
-        const auto MSEC =
-            duration_cast<milliseconds>(NOW.time_since_epoch()) % 1000;
+        const auto SECONDS = duration_cast<std::chrono::seconds>(NOW.time_since_epoch()).count();
+        const auto MSEC = duration_cast<milliseconds>(NOW.time_since_epoch()) % 1000;
 
         thread_local std::time_t lastSeconds = 0;
         thread_local std::string lastSecondsStr;
@@ -122,11 +125,15 @@ class Logger {
         return oss.str();
     }
 
-    static auto formatPrefix(LogLevel lvl, std::string_view file, uint32_t line)
-        -> std::string {
+    static auto formatPrefix(
+        LogLevel lvl,
+        std::string_view file,
+        uint32_t line) -> std::string {
         std::ostringstream oss;
         oss << timestamp() << " [" << levelName(lvl) << "] ";
-        if (!file.empty()) oss << file << ":" << line << ' ';
+        if (!file.empty()) {
+            oss << file << ":" << line << ' ';
+        }
         return oss.str();
     }
 };

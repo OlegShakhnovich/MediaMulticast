@@ -13,8 +13,8 @@ namespace logsys {
 template <LogLevel Lvl, typename T>
 inline void logVar(
     std::string_view name,
-    T && value,
-    const std::source_location & loc = std::source_location::current()) {
+    T&& value,
+    const std::source_location& loc = std::source_location::current()) {
     thread_local std::ostringstream oss;
     oss.str({});
     oss.clear();
@@ -23,32 +23,32 @@ inline void logVar(
 }
 
 template <typename... Args>
-inline void trace(Args &&... args) {
+inline void trace(Args&&... args) {
     Logger::instance().logMsg<LogLevel::TRACE>(std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-inline void debug(Args &&... args) {
+inline void debug(Args&&... args) {
     Logger::instance().logMsg<LogLevel::DEBUG>(std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-inline void info(Args &&... args) {
+inline void info(Args&&... args) {
     Logger::instance().logMsg<LogLevel::INFO>(std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-inline void warn(Args &&... args) {
+inline void warn(Args&&... args) {
     Logger::instance().logMsg<LogLevel::WARN>(std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-inline void error(Args &&... args) {
+inline void error(Args&&... args) {
     Logger::instance().logMsg<LogLevel::ERROR>(std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-inline void fatal(Args &&... args) {
+inline void fatal(Args&&... args) {
     Logger::instance().logMsg<LogLevel::FATAL>(std::forward<Args>(args)...);
 }
 

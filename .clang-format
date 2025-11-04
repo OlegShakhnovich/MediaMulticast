@@ -1,11 +1,11 @@
 BasedOnStyle: Chromium
-ColumnLimit: 80
+ColumnLimit: 0
 IndentWidth: 4
 TabWidth: 4
 UseTab: false
-PointerAlignment: Middle
+PointerAlignment: Left
 AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortIfStatementsOnASingleLine: false
 BreakBeforeBraces: Attach
 SortIncludes: true
 BinPackArguments: false
