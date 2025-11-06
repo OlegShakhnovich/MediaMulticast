@@ -2,4 +2,6 @@
 
 #include <iostream>
 
-void FileReader::doSomething() { std::cout << "FileReader works!" << '\n'; }
+void FileReader::doSomething() {
+    std::cout << "FileReader works!" << '\n';
+}
