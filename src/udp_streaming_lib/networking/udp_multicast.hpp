@@ -10,32 +10,26 @@ enum class UdpMulticastResult {
     SOCKET_OPENING_FAILED    /**< Socket opening error. */
 };
 
-
 class IStreamingCallback {
-public:
+   public:
     virtual ~IStreamingCallback() = default;
 
     virtual void onResult(UdpMulticastResult result) = 0;
 };
 
 class UdpMulticast {
-public:
+   public:
     UdpMulticast(
-        std::string filename, 
-        SocketAddress streamingAddress, 
+        std::string filename,
+        SocketAddress streamingAddress,
         IStreamingCallback* callback,
-        size_t targetBitrate
-        )
-    : filename_(filename)
-      ,streamingAddress_(streamingAddress)
-      ,callback_(callback)
-      ,targetBitrate_(targetBitrate)
-    {
+        size_t targetBitrate)
+        : filename_(filename), streamingAddress_(streamingAddress), callback_(callback), targetBitrate_(targetBitrate) {
         net_init();
     }
 
     size_t stopStreaming() {
-        //TODO
+        // TODO
         return 0;
     }
 
@@ -54,8 +48,8 @@ public:
         return 0;
     }
 
-private: 
-    std::string filename_; 
+   private:
+    std::string filename_;
     SocketAddress streamingAddress_;
     IStreamingCallback* callback_;
     size_t targetBitrate_;

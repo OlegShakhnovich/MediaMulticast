@@ -1,19 +1,16 @@
-#include "udp_streaming_lib_export.h"
-#include "networking/net_utils.hpp"
-#include "networking/udp_multicast.hpp"
-
-#include <string>
-#include <memory>
 #include <filesystem>
 #include <iostream>
+#include <memory>
+#include <string>
 
-//return 0 on succeess and non zero error code on error 
-int make_address(
-    const std::string& host, 
-    const std::string& port,
-    SocketAddress* addr) {
+#include "networking/net_utils.hpp"
+#include "networking/udp_multicast.hpp"
+#include "udp_streaming_lib_export.h"
+
+// return 0 on succeess and non zero error code on error
+int make_address(const std::string& host, const std::string& port, SocketAddress* addr) {
     if (net_init()) {
-        return -1; // Network init error
+        return -1;  // Network init error
     };
 
     struct addrinfo hints{};
@@ -36,23 +33,17 @@ int make_address(
     return 0;
 }
 
-
-class Streamer: public IStreamingCallback {
-public:
-    ~Streamer() { 
+class Streamer : public IStreamingCallback {
+   public:
+    ~Streamer() {
         if (streamer_) {
             delete streamer_;
             streamer_ = nullptr;
-        } 
+        }
     }
 
     UdpStreamingLibResult startFileStreaming(
-        std::string filename,
-        std::string address, 
-        std::string port,
-        StreamingCallback callback,
-        size_t targetBitrate
-    ) {
+        std::string filename, std::string address, std::string port, StreamingCallback callback, size_t targetBitrate) {
         if (!std::filesystem::exists(filename)) {
             return STREAMING_LIB_ERROR_FILE_NOT_EXIST;
         }
@@ -66,11 +57,7 @@ public:
         callback_ = callback;
         targetBitrate_ = targetBitrate;
 
-        streamer_ = new UdpMulticast(
-            filename_, 
-            streamingAddress_, 
-            this, 
-            targetBitrate);
+        streamer_ = new UdpMulticast(filename_, streamingAddress_, this, targetBitrate);
 
         return STREAMING_LIB_OK;
     }
@@ -80,8 +67,8 @@ public:
             return;
         }
         switch (result) {
-            case UdpMulticastResult::STREAMING_COMPLETED: 
-                callback_(STREAMING_COMPLETED); 
+            case UdpMulticastResult::STREAMING_COMPLETED:
+                callback_(STREAMING_COMPLETED);
                 break;
             case UdpMulticastResult::NETWORK_ERROR:
                 callback_(NETWORK_ERROR);
@@ -101,7 +88,7 @@ public:
         }
     }
 
-    size_t stopStreaming() { 
+    size_t stopStreaming() {
         if (streamer_) {
             return streamer_->stopStreaming();
         }
@@ -129,7 +116,7 @@ public:
         return STREAMING_LIB_ERROR_INVALID_CONTEXT;
     }
 
-private:
+   private:
     UdpMulticast* streamer_;
     SocketAddress streamingAddress_{};
     std::string filename_;
@@ -137,11 +124,10 @@ private:
     size_t targetBitrate_;
 };
 
-
 std::string safeString(const char* data, size_t length) {
     if (data == nullptr || length == 0) {
-        return std::string(); // return empty string if something wrong
-    }    
+        return std::string();  // return empty string if something wrong
+    }
     return std::string(data, length);
 }
 
@@ -153,27 +139,11 @@ struct UdpStreamingLibContext {
     std::unique_ptr<Streamer> instance;
 };
 
-
-UDP_STREAMING_LIB_API UdpStreamingLibResult startFileStreaming(
-    UdpStreamingLibContext* context, 
-    char* filename,
-    size_t filenameLength, 
-    char* address, 
-    size_t addressLength, 
-    char* port, 
-    size_t portLength,
-    StreamingCallback callback,
-    size_t targetBitrate
-) {
+UDP_STREAMING_LIB_API UdpStreamingLibResult startFileStreaming(UdpStreamingLibContext* context, char* filename, size_t filenameLength, char* address, size_t addressLength, char* port, size_t portLength, StreamingCallback callback, size_t targetBitrate) {
     if (context == nullptr) {
         return STREAMING_LIB_ERROR_INVALID_CONTEXT;
     }
-    return context->instance->startFileStreaming(
-        safeString(filename, filenameLength), 
-        safeString(address, addressLength), 
-        safeString(port, portLength),
-        callback, 
-        targetBitrate);
+    return context->instance->startFileStreaming(safeString(filename, filenameLength), safeString(address, addressLength), safeString(port, portLength), callback, targetBitrate);
 }
 
 UDP_STREAMING_LIB_API size_t stopStreaming(UdpStreamingLibContext* context) {
