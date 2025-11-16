@@ -2,35 +2,41 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <functional>
+#include <utility>
 
 #include "networking/net_utils.hpp"
 #include "networking/udp_multicast.hpp"
 #include "udp_streaming_lib_export.h"
 
-// return 0 on succeess and non zero error code on error
-int make_address(const std::string& host, const std::string& port, SocketAddress* addr) {
+static SocketAddress make_address(const std::string& host, const std::string& port) {
+    SocketAddress res;
+    res.length = 0;
+
     if (net_init()) {
-        return -1;  // Network init error
+        res.errorCode = -1;
+        return res;  // Network init error
     };
 
     struct addrinfo hints{};
-    struct addrinfo* res = nullptr;
+    struct addrinfo* sysaddr = nullptr;
 
     std::memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;      // IPv4 или IPv6
     hints.ai_socktype = SOCK_STREAM;  // TCP
 
-    int err = getaddrinfo(host.c_str(), port.c_str(), &hints, &res);
+    int err = getaddrinfo(host.c_str(), port.c_str(), &hints, &sysaddr);
     if (err != 0) {
-        return err;
+        res.errorCode = err;
+        return res;
     }
 
     SocketAddress out{};
-    std::memcpy(&addr->storage, res->ai_addr, res->ai_addrlen);
-    addr->length = static_cast<socklen_t>(res->ai_addrlen);
+    std::memcpy(&res.storage, sysaddr->ai_addr, sysaddr->ai_addrlen);
+    res.length = static_cast<socklen_t>(sysaddr->ai_addrlen);
 
-    freeaddrinfo(res);
-    return 0;
+    freeaddrinfo(sysaddr);
+    return res;
 }
 
 class Streamer : public IStreamingCallback {
@@ -49,8 +55,8 @@ class Streamer : public IStreamingCallback {
         }
         filename_ = filename;
 
-        int res = make_address(address, port, &streamingAddress_);
-        if (res) {
+        streamingAddress_ = make_address(address, port);
+        if (streamingAddress_.length == 0) {
             return STREAMING_LIB_ERROR_WRONG_IP_ADDRESS;
         }
 
@@ -85,35 +91,33 @@ class Streamer : public IStreamingCallback {
             case UdpMulticastResult::SOCKET_OPENING_FAILED:
                 callback_(SOCKET_OPENING_FAILED);
                 break;
+            default:
+                callback_(INTERNAL_ERROR);
+                break;
         }
+    }
+
+    template <typename F>
+    inline UdpStreamingLibResult callIfContextValid(F&& func) const {
+        if (streamer_ != nullptr)
+            return std::invoke(std::forward<F>(func), streamer_);
+        return STREAMING_LIB_ERROR_INVALID_CONTEXT;
     }
 
     size_t stopStreaming() {
-        if (streamer_) {
-            return streamer_->stopStreaming();
-        }
-        return STREAMING_LIB_ERROR_INVALID_CONTEXT;
+        return callIfContextValid(streamer_->stopStreaming());
     }
 
     size_t getBitrate() {
-        if (streamer_) {
-            return streamer_->getBitrate();
-        }
-        return STREAMING_LIB_ERROR_INVALID_CONTEXT;
+        return callIfContextValid( streamer_->getBitrate());
     }
 
     size_t getFileSize() {
-        if (streamer_) {
-            return streamer_->getFileSize();
-        }
-        return STREAMING_LIB_ERROR_INVALID_CONTEXT;
+        return callIfContextValid(streamer_->getFileSize());
     }
 
     size_t getCurrentPosition() {
-        if (streamer_) {
-            return streamer_->getCurrentPosition();
-        }
-        return STREAMING_LIB_ERROR_INVALID_CONTEXT;
+        return callIfContextValid(streamer_->getCurrentPosition());
     }
 
    private:
@@ -139,7 +143,16 @@ struct UdpStreamingLibContext {
     std::unique_ptr<Streamer> instance;
 };
 
-UDP_STREAMING_LIB_API UdpStreamingLibResult startFileStreaming(UdpStreamingLibContext* context, char* filename, size_t filenameLength, char* address, size_t addressLength, char* port, size_t portLength, StreamingCallback callback, size_t targetBitrate) {
+UDP_STREAMING_LIB_API UdpStreamingLibResult startFileStreaming(
+    UdpStreamingLibContext* context,
+    const char* filename,
+    size_t filenameLength,
+    const char* address,
+    size_t addressLength,
+    const char* port,
+    size_t portLength,
+    StreamingCallback callback,
+    size_t targetBitrate) {
     if (context == nullptr) {
         return STREAMING_LIB_ERROR_INVALID_CONTEXT;
     }

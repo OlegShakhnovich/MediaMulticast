@@ -33,17 +33,17 @@ class UdpMulticast {
         return 0;
     }
 
-    size_t getBitrate() {
+    size_t getBitrate() const {
         // TODO
         return 0;
     }
 
-    size_t getFileSize() {
+    size_t getFileSize() const {
         // TODO
         return 0;
     }
 
-    size_t getCurrentPosition() {
+    size_t getCurrentPosition() const {
         // TODO
         return 0;
     }
