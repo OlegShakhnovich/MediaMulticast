@@ -18,6 +18,7 @@
 struct SocketAddress {
     sockaddr_storage storage{};
     socklen_t length{};
+    int errorCode;
 };
 
 // Network init for Windows. Returns non zero in case init failed

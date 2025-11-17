@@ -85,7 +85,7 @@ UDP_STREAMING_LIB_API void udpStreamingLibDestroy(UdpStreamingLibContext* contex
  * @param context the UDP streaming library instance context
  *
  * @param filename  The path to input media file.
- *        Only .ts, .wav and .mp4 files allowed.
+ *        Only .ts, .wav and .mp3 files allowed.
  *
  * @param filenameLength  the length of
  * filename in characters.
@@ -144,11 +144,11 @@ UDP_STREAMING_LIB_API void udpStreamingLibDestroy(UdpStreamingLibContext* contex
  */
 UDP_STREAMING_LIB_API UdpStreamingLibResult startFileStreaming(
     UdpStreamingLibContext* context,
-    char* filename,
+    const char* filename,
     size_t filenameLength,
-    char* address,
+    const char* address,
     size_t addressLength,
-    char* port,
+    const char* port,
     size_t portLength,
     StreamingCallback callback = NULL,
     size_t targetBitrate = 0);

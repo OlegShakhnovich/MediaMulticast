@@ -17,6 +17,9 @@
 mono_crash.*
 
 CMakeSettings.json
+CMakePresets.json
+vcpkg.json
+vcpkg-configuration.json
 
 [Bb]uild/
 [Ii]nstall/
