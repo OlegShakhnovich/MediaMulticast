@@ -74,6 +74,23 @@ jobs:
         shell: pwsh
         run: echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
 
+
+      - name: Check LLVM version (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          echo "Checking clang/clang-format version..."
+          clang-format --version
+          clang-tidy --version
+
+      - name: Check LLVM version (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          clang --version
+          clang-format --version
+          clang-tidy --version
+
       - name: Check formatting with clang-format (Unix)
         if: runner.os != 'Windows'
         working-directory: ${{ github.workspace }}
