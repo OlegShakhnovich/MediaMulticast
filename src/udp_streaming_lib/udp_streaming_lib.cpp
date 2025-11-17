@@ -1,15 +1,24 @@
+#include <cstring>
 #include <filesystem>
-#include <iostream>
 #include <memory>
 #include <string>
-#include <functional>
-#include <utility>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "Ws2_32.lib")
+#else
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#endif
 
 #include "networking/net_utils.hpp"
 #include "networking/udp_multicast.hpp"
 #include "udp_streaming_lib_export.h"
 
-static SocketAddress make_address(const std::string& host, const std::string& port) {
+namespace {
+auto makeAddress(const std::string& host, const std::string& port) -> SocketAddress {
     SocketAddress res;
     res.length = 0;
 
@@ -25,13 +34,12 @@ static SocketAddress make_address(const std::string& host, const std::string& po
     hints.ai_family = AF_UNSPEC;      // IPv4 или IPv6
     hints.ai_socktype = SOCK_STREAM;  // TCP
 
-    int err = getaddrinfo(host.c_str(), port.c_str(), &hints, &sysaddr);
-    if (err != 0) {
-        res.errorCode = err;
+    const int ERR = getaddrinfo(host.c_str(), port.c_str(), &hints, &sysaddr);
+    if (ERR != 0) {
+        res.errorCode = ERR;
         return res;
     }
 
-    SocketAddress out{};
     std::memcpy(&res.storage, sysaddr->ai_addr, sysaddr->ai_addrlen);
     res.length = static_cast<socklen_t>(sysaddr->ai_addrlen);
 
@@ -39,102 +47,109 @@ static SocketAddress make_address(const std::string& host, const std::string& po
     return res;
 }
 
+auto safeString(const char* data, size_t length) -> std::string {
+    if (data == nullptr || length == 0) {
+        return {};  // return empty string if something wrong
+    }
+    return {data, length};
+}
+}  // namespace
+
 class Streamer : public IStreamingCallback {
    public:
-    ~Streamer() {
-        if (streamer_) {
-            delete streamer_;
-            streamer_ = nullptr;
-        }
-    }
+    Streamer(const Streamer&) = delete;
+    Streamer(Streamer&&) = delete;
+    auto operator=(const Streamer&) -> Streamer& = delete;
+    auto operator=(Streamer&&) -> Streamer& = delete;
+    ~Streamer() override = default;
 
-    UdpStreamingLibResult startFileStreaming(
-        std::string filename, std::string address, std::string port, StreamingCallback callback, size_t targetBitrate) {
-        if (!std::filesystem::exists(filename)) {
+    auto startFileStreaming(
+        const std::string& filename_,
+        const std::string& address_,
+        const std::string& port_,
+        StreamingCallback callback_,
+        size_t targetBitrate_)
+        -> UdpStreamingLibResult {
+        if (!std::filesystem::exists(filename_)) {
             return STREAMING_LIB_ERROR_FILE_NOT_EXIST;
         }
-        filename_ = filename;
+        filename = filename_;
 
-        streamingAddress_ = make_address(address, port);
-        if (streamingAddress_.length == 0) {
+        streamingAddress = makeAddress(address_, port_);
+        if (streamingAddress.length == 0) {
             return STREAMING_LIB_ERROR_WRONG_IP_ADDRESS;
         }
 
-        callback_ = callback;
-        targetBitrate_ = targetBitrate;
+        callback = callback_;
+        targetBitrate = targetBitrate_;
 
-        streamer_ = new UdpMulticast(filename_, streamingAddress_, this, targetBitrate);
+        streamer = std::make_unique<UdpMulticast>(filename, streamingAddress, this, targetBitrate);
 
         return STREAMING_LIB_OK;
     }
 
-    void onResult(UdpMulticastResult result) {
-        if (callback_ == nullptr) {
+    void onResult(UdpMulticastResult result) override {
+        if (callback == nullptr) {
             return;
         }
         switch (result) {
             case UdpMulticastResult::STREAMING_COMPLETED:
-                callback_(STREAMING_COMPLETED);
+                callback(STREAMING_COMPLETED);
                 break;
             case UdpMulticastResult::NETWORK_ERROR:
-                callback_(NETWORK_ERROR);
+                callback(NETWORK_ERROR);
                 break;
             case UdpMulticastResult::FILE_READING_ERROR:
-                callback_(FILE_READING_ERROR);
+                callback(FILE_READING_ERROR);
                 break;
             case UdpMulticastResult::WRONG_FILE_FORMAT:
-                callback_(WRONG_FILE_FORMAT);
+                callback(WRONG_FILE_FORMAT);
                 break;
             case UdpMulticastResult::INTERNAL_ERROR:
-                callback_(INTERNAL_ERROR);
+                callback(INTERNAL_ERROR);
                 break;
             case UdpMulticastResult::SOCKET_OPENING_FAILED:
-                callback_(SOCKET_OPENING_FAILED);
+                callback(SOCKET_OPENING_FAILED);
                 break;
             default:
-                callback_(INTERNAL_ERROR);
+                callback(INTERNAL_ERROR);
                 break;
         }
     }
 
     template <typename F>
-    inline UdpStreamingLibResult callIfContextValid(F&& func) const {
-        if (streamer_ != nullptr)
-            return std::invoke(std::forward<F>(func), streamer_);
+    [[nodiscard]] auto callIfContextValid(F func) const -> size_t {
+        if (streamer) {
+            return func(streamer.get());
+        }
         return STREAMING_LIB_ERROR_INVALID_CONTEXT;
     }
 
-    size_t stopStreaming() {
-        return callIfContextValid(streamer_->stopStreaming());
+    [[nodiscard]] auto stopStreaming() const -> size_t {
+        return callIfContextValid([](UdpMulticast* streamer) -> size_t { return streamer->stopStreaming(); });
     }
 
-    size_t getBitrate() {
-        return callIfContextValid( streamer_->getBitrate());
+    [[nodiscard]] auto getBitrate() const -> size_t {
+        return callIfContextValid([](UdpMulticast* streamer) -> size_t { return streamer->getBitrate(); });
     }
 
-    size_t getFileSize() {
-        return callIfContextValid(streamer_->getFileSize());
+    [[nodiscard]] auto getFileSize() const -> size_t {
+        return callIfContextValid([](UdpMulticast* streamer) -> size_t { return streamer->getFileSize(); });
     }
 
-    size_t getCurrentPosition() {
-        return callIfContextValid(streamer_->getCurrentPosition());
+    [[nodiscard]] auto getCurrentPosition() const -> size_t {
+        return callIfContextValid([](UdpMulticast* streamer) -> size_t { return streamer->getCurrentPosition(); });
     }
 
    private:
-    UdpMulticast* streamer_;
-    SocketAddress streamingAddress_{};
-    std::string filename_;
-    StreamingCallback callback_;
-    size_t targetBitrate_;
+    std::unique_ptr<UdpMulticast> streamer;
+    SocketAddress streamingAddress{};
+    std::string filename;
+    StreamingCallback callback;
+    size_t targetBitrate;
 };
 
-std::string safeString(const char* data, size_t length) {
-    if (data == nullptr || length == 0) {
-        return std::string();  // return empty string if something wrong
-    }
-    return std::string(data, length);
-}
-
+// NOLINTBEGIN
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -143,7 +158,7 @@ struct UdpStreamingLibContext {
     std::unique_ptr<Streamer> instance;
 };
 
-UDP_STREAMING_LIB_API UdpStreamingLibResult startFileStreaming(
+UDP_STREAMING_LIB_API auto startFileStreaming(
     UdpStreamingLibContext* context,
     const char* filename,
     size_t filenameLength,
@@ -152,11 +167,17 @@ UDP_STREAMING_LIB_API UdpStreamingLibResult startFileStreaming(
     const char* port,
     size_t portLength,
     StreamingCallback callback,
-    size_t targetBitrate) {
+    size_t targetBitrate)
+    -> UdpStreamingLibResult {
     if (context == nullptr) {
         return STREAMING_LIB_ERROR_INVALID_CONTEXT;
     }
-    return context->instance->startFileStreaming(safeString(filename, filenameLength), safeString(address, addressLength), safeString(port, portLength), callback, targetBitrate);
+    return context->instance->startFileStreaming(
+        safeString(filename, filenameLength),
+        safeString(address, addressLength),
+        safeString(port, portLength),
+        callback,
+        targetBitrate);
 }
 
 UDP_STREAMING_LIB_API size_t stopStreaming(UdpStreamingLibContext* context) {
@@ -187,6 +208,7 @@ UDP_STREAMING_LIB_API size_t getCurrentPosition(UdpStreamingLibContext* context)
     return context->instance->getCurrentPosition();
 }
 
+// NOLINTEND
 #ifdef __cplusplus
 }
 #endif

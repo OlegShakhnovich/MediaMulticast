@@ -20,11 +20,14 @@ class IStreamingCallback {
 class UdpMulticast {
    public:
     UdpMulticast(
-        std::string filename,
-        SocketAddress streamingAddress,
-        IStreamingCallback* callback,
-        size_t targetBitrate)
-        : filename_(filename), streamingAddress_(streamingAddress), callback_(callback), targetBitrate_(targetBitrate) {
+        std::string filename_,
+        SocketAddress streamingAddress_,
+        IStreamingCallback* callback_,
+        size_t targetBitrate_)
+        : filename(filename_),
+          streamingAddress(streamingAddress_),
+          callback(callback_),
+          targetBitrate(targetBitrate_) {
         net_init();
     }
 
@@ -49,8 +52,8 @@ class UdpMulticast {
     }
 
    private:
-    std::string filename_;
-    SocketAddress streamingAddress_;
-    IStreamingCallback* callback_;
-    size_t targetBitrate_;
+    std::string filename;
+    SocketAddress streamingAddress;
+    IStreamingCallback* callback;
+    size_t targetBitrate;
 };

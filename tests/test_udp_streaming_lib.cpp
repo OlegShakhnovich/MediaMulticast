@@ -1,52 +1,101 @@
 #include <gtest/gtest.h>
 
-#include "test_udp_streaming_lib.hpp"
 #include "udp_streaming_lib_export.h"
+// #include "udp_streaming_lib.hpp"
 
-static std::atomic<UdpStreamingLibCallbackResult> callbackResult; //NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-static std::atomic<bool> callbackCalled{false};  //NOLINT(cppcoreguidelines-avoid-non-const-global-variables) 
-
-void testCallback(UdpStreamingLibCallbackResult result) {
-    callbackResult = result;
-    callbackCalled = true;
-}
+#include <string_view>
 
 class UdpStreamingLibTest : public ::testing::Test {
-   protected:
-    UdpStreamingLibContext* ctx = nullptr; //NOLINT(cppcoreguidelines-non-private-member-variables-in-classes,misc-non-private-member-variables-in-classes)
+   private:
+    UdpStreamingLibContext* ctx = nullptr;
+    /* std::atomic<UdpStreamingLibCallbackResult> callbackResult{};
+    std::atomic<bool> callbackCalled{false};
 
-    void SetUp() override { // NOLINT(readability-identifier-naming)
+    static void testCallback(UdpStreamingLibTest* self, UdpStreamingLibCallbackResult result) {
+        self->callbackResult = result;
+        self->callbackCalled = true;
+    }*/
+
+   protected:
+    [[nodiscard]] auto getCtx() const -> UdpStreamingLibContext* { return ctx; }
+
+    void SetUp() override {
         ctx = udpStreamingLibCreate();
         ASSERT_NE(ctx, nullptr) << "udpStreamingLibCreate() returns NULL";
     }
 
-    void TearDown() override { // NOLINT(readability-identifier-naming)
-        if (ctx != nullptr) {
+    void TearDown() override {
+        if (ctx) {
             udpStreamingLibDestroy(ctx);
             ctx = nullptr;
         }
     }
 };
 
+constexpr std::string_view TEST_FILE_NAME = "test.ts";
+constexpr std::string_view NONEXISTENT_FILE_NAME = "nonexistent_file.ts";
+constexpr std::string_view TEST_IP = "127.0.0.1";
+constexpr std::string_view INVALID_IP = "invalid_ip";
+constexpr std::string_view TEST_PORT = "5000";
+
 // ---------- Tests ----------
-TEST_F(UdpStreamingLibTest, CreateAndDestroyContext) { //NOLINT
-    ASSERT_NE(ctx, nullptr);
+TEST_F(UdpStreamingLibTest, CreateAndDestroyContext) {
+    ASSERT_NE(getCtx(), nullptr);
 }
 
-TEST(UdpStreamingLibTest, InvalidContextReturnsError) { //NOLINT
-    UdpStreamingLibResult res =
-        startFileStreaming(nullptr, "test.ts", 7, "127.0.0.1", 9, "1234", 4, nullptr, 0); //NOLINT
-    EXPECT_EQ(res, STREAMING_LIB_ERROR_INVALID_CONTEXT);
+TEST(UdpStreamingLibTest, InvalidContextReturnsError) {
+    const UdpStreamingLibResult RES = startFileStreaming(
+        nullptr,
+        TEST_FILE_NAME.data(),
+        TEST_FILE_NAME.size(),
+        TEST_IP.data(),
+        TEST_IP.size(),
+        TEST_PORT.data(),
+        TEST_PORT.size(),
+        nullptr,
+        0);
+    EXPECT_EQ(RES, STREAMING_LIB_ERROR_INVALID_CONTEXT);
+}
+TEST_F(UdpStreamingLibTest, FileExists) {
+    const UdpStreamingLibResult RES = startFileStreaming(
+        getCtx(),
+        TEST_FILE_NAME.data(),
+        TEST_FILE_NAME.size(),
+        TEST_IP.data(),
+        TEST_IP.size(),
+        TEST_PORT.data(),
+        TEST_PORT.size(),
+        nullptr,
+        0);
+    EXPECT_EQ(RES, STREAMING_LIB_OK);
 }
 
-TEST_F(UdpStreamingLibTest, FileDoesNotExist) { //NOLINT
-    UdpStreamingLibResult res = startFileStreaming(ctx, "nonexistent_file.ts", strlen("nonexistent_file.ts"), "127.0.0.1", strlen("127.0.0.1"), "5000", strlen("5000"), nullptr, 0); //NOLINT(cppcoreguidelines-init-variables)
-    EXPECT_EQ(res, STREAMING_LIB_ERROR_FILE_NOT_EXIST);
+TEST_F(UdpStreamingLibTest, FileDoesNotExist) {
+    const UdpStreamingLibResult RES = startFileStreaming(
+        getCtx(),
+        NONEXISTENT_FILE_NAME.data(),
+        NONEXISTENT_FILE_NAME.size(),
+        TEST_IP.data(),
+        TEST_IP.size(),
+        TEST_PORT.data(),
+        TEST_PORT.size(),
+        nullptr,
+        0);
+    EXPECT_EQ(RES, STREAMING_LIB_ERROR_FILE_NOT_EXIST);
 }
 
-TEST_F(UdpStreamingLibTest, InvalidIpAddress) { //NOLINT
-    UdpStreamingLibResult res = startFileStreaming(ctx, "test.ts", strlen("test.ts"), "invalid_ip", strlen("invalid_ip"), "5000", strlen("5000"), nullptr, 0); //NOLINT(cppcoreguidelines-init-variables)
-    EXPECT_EQ(res, STREAMING_LIB_ERROR_WRONG_IP_ADDRESS);
+TEST_F(UdpStreamingLibTest, InvalidIpAddress) {
+    const UdpStreamingLibResult RES = startFileStreaming(
+        getCtx(),
+        TEST_FILE_NAME.data(),
+        TEST_FILE_NAME.size(),
+        INVALID_IP.data(),
+        INVALID_IP.size(),
+        TEST_PORT.data(),
+        TEST_PORT.size(),
+        nullptr,
+        0);
+    EXPECT_EQ(RES, STREAMING_LIB_ERROR_WRONG_IP_ADDRESS);
 }
 
 /*
