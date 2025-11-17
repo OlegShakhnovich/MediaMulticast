@@ -15,17 +15,19 @@
 #endif
 
 /**
- * @brief Return codes for UDP_STREAMING_LIB_API API functions.
+ * @brief Return codes for
+ * UDP_STREAMING_LIB_API API functions.
  */
 typedef enum UdpStreamingLibResult {
-    STREAMING_LIB_OK = 0,                   /**< Streaming started successfully. */
-    STREAMING_LIB_ERROR_INVALID_CONTEXT,    /**< Library context is invalid. */ 
-    STREAMING_LIB_ERROR_FILE_NOT_EXIST,     /**< Streaming file does not exist. */
-    STREAMING_LIB_ERROR_WRONG_IP_ADDRESS    /**< IP address or port can not be parsed. */
+    STREAMING_LIB_OK = 0,                /**< Streaming started successfully. */
+    STREAMING_LIB_ERROR_INVALID_CONTEXT, /**< Library context is invalid. */
+    STREAMING_LIB_ERROR_FILE_NOT_EXIST,  /**< Streaming file does not exist. */
+    STREAMING_LIB_ERROR_WRONG_IP_ADDRESS /**< IP address or port can not be parsed. */
 } UdpStreamingLibResult;
 
 /**
- * @brief Return code for streaming completion callback.
+ * @brief Return code for streaming
+ * completion callback.
  */
 typedef enum UdpStreamingLibCallbackResult {
     STREAMING_COMPLETED = 0, /**< Streaming completed successfully. */
@@ -33,19 +35,23 @@ typedef enum UdpStreamingLibCallbackResult {
     FILE_READING_ERROR,      /**< File reading error occured. */
     WRONG_FILE_FORMAT,       /**< Can't parse header of streaming file.
                                 Probably incorrect file type. */
-    INTERNAL_ERROR,           /**< Internal library error. */
-    SOCKET_OPENING_FAILED     /**< Socket opening error. */
+    INTERNAL_ERROR,          /**< Internal library error. */
+    SOCKET_OPENING_FAILED    /**< Socket opening error. */
 } UdpStreamingLibCallbackResult;
 
 /**
- * @brief Callback function for streaming completion callback.
+ * @brief Callback function for
+ * streaming completion callback.
  *
- * The callback is invoked when streaming completes
- * or when error occured.
+ * The callback is invoked when
+ * streaming completes or when error
+ * occured.
  *
- * The callback is executed in a background thread.
+ * The callback is executed in a
+ * background thread.
  *
- * @param result    The streaming result code.
+ * @param result    The streaming result
+ * code.
  */
 typedef void (*StreamingCallback)(UdpStreamingLibCallbackResult result);
 
@@ -57,7 +63,7 @@ typedef struct UdpStreamingLibContext UdpStreamingLibContext;
 
 /**
  * @brief Create an instance of UDP streaming library.
- * 
+ *
  * @return instance context used in following API calls.
  */
 UDP_STREAMING_LIB_API UdpStreamingLibContext* udpStreamingLibCreate();
@@ -65,7 +71,7 @@ UDP_STREAMING_LIB_API UdpStreamingLibContext* udpStreamingLibCreate();
 /**
  * @brief Destroy an instance of UDP streaming library.
  *
- * @param context the UDP streaming library instance context 
+ * @param context the UDP streaming library instance context
  */
 UDP_STREAMING_LIB_API void udpStreamingLibDestroy(UdpStreamingLibContext* context);
 
@@ -75,64 +81,82 @@ UDP_STREAMING_LIB_API void udpStreamingLibDestroy(UdpStreamingLibContext* contex
  * Performs streaming in a background thread and invokes the specified
  * callback function upon completion. The result is passed through
  * the callback.
- * 
- * @param context the UDP streaming library instance context 
+ *
+ * @param context the UDP streaming library instance context
  *
  * @param filename  The path to input media file.
- *        Only .ts, .wav and .mp4 files allowed.
+ *        Only .ts, .wav and .mp3 files allowed.
  *
- * @param filenameLength  the length of filename in characters.
+ * @param filenameLength  the length of
+ * filename in characters.
  *
  * @param address multicast IP address
- *   A null-terminated string containing either an IPv4 or IPv6 address,
- *   without a port number. The library automatically detects the address type
- *   based on its format.
+ *   A null-terminated string containing
+ * either an IPv4 or IPv6 address,
+ * without a port number. The library
+ * automatically detects the address
+ * type based on its format.
  *
  *   - **IPv4 format:** "192.168.1.10"
- *   - **IPv6 format:** "2001:db8::1" or "::1"
+ *   - **IPv6 format:** "2001:db8::1" or
+ * "::1"
  *
- *   Multicast addresses are also supported:
+ *   Multicast addresses are also
+ * supported:
  *
- *   - **IPv4 multicast range:** 224.0.0.0 - 239.255.255.255 (224.0.0.0/4)
- *   - **IPv6 multicast range:** FF00::/8 (all addresses beginning with FF)
+ *   - **IPv4 multicast range:**
+ * 224.0.0.0 - 239.255.255.255
+ * (224.0.0.0/4)
+ *   - **IPv6 multicast range:**
+ * FF00::/8 (all addresses beginning
+ * with FF)
  *
  *   Example:
  *   @code
- *   ConnectToHost("ff02::1");       // IPv6 multicast (link-local)
- *   ConnectToHost("239.255.0.1");   // IPv4 multicast
+ *   ConnectToHost("ff02::1");       //
+ * IPv6 multicast (link-local)
+ * ConnectToHost("239.255.0.1");   //
+ * IPv4 multicast
  *   @endcode
  *
- * @param addrLength the length of address in characters.
+ * @param addrLength the length of
+ * address in characters.
  *
  * @param port multicast IP port
  *
- * @param callback completion callback invoked when streaming completes
- * or when error occured. Optional, can be set to NULL if not used.
+ * @param callback completion callback
+ * invoked when streaming completes or
+ * when error occured. Optional, can be
+ * set to NULL if not used.
  *
- * @param targetBitrate user bitrate in bytes per sec. Optional,
- * must be set to 0 if not used. Normally bitrate from media file header used.
+ * @param targetBitrate user bitrate in
+ * bytes per sec. Optional, must be set
+ * to 0 if not used. Normally bitrate
+ * from media file header used.
  *
- * @return STREAMING_LIB_OK if the streaming was started successfully,
- *         or error code.
+ * @return STREAMING_LIB_OK if the
+ * streaming was started successfully,
+ * or error code.
  *
- * @note This function does not block the calling thread.
- *       The callback is executed in a background thread.
+ * @note This function does not block
+ * the calling thread. The callback is
+ * executed in a background thread.
  */
 UDP_STREAMING_LIB_API UdpStreamingLibResult startFileStreaming(
-    UdpStreamingLibContext* context, 
-    char* filename,
-    size_t filenameLength, 
-    char* address, 
-    size_t addressLength, 
-    char* port, 
+    UdpStreamingLibContext* context,
+    const char* filename,
+    size_t filenameLength,
+    const char* address,
+    size_t addressLength,
+    const char* port,
     size_t portLength,
-    StreamingCallback callback = NULL, 
+    StreamingCallback callback = NULL,
     size_t targetBitrate = 0);
 
 /**
  * @brief Stop an asynchronous UDP streaming.
- * 
- * @param context the UDP streaming library instance context 
+ *
+ * @param context the UDP streaming library instance context
  *
  * @return amount of streamed bytes
  */
@@ -140,22 +164,22 @@ UDP_STREAMING_LIB_API size_t stopStreaming(UdpStreamingLibContext* context);
 
 /**
  * @brief Return current streaming bitrate
- * 
- * @param context the UDP streaming library instance context 
+ *
+ * @param context the UDP streaming library instance context
  */
 UDP_STREAMING_LIB_API size_t getBitrate(UdpStreamingLibContext* context);
 
 /**
  * @brief Return streaming file size
- * 
- * @param context the UDP streaming library instance context 
+ *
+ * @param context the UDP streaming library instance context
  */
 UDP_STREAMING_LIB_API size_t getFileSize(UdpStreamingLibContext* context);
 
 /**
  * @brief Return number of streamed bytes
- * 
- * @param context the UDP streaming library instance context 
+ *
+ * @param context the UDP streaming library instance context
  */
 UDP_STREAMING_LIB_API size_t getCurrentPosition(UdpStreamingLibContext* context);
 
