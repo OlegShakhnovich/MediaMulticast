@@ -78,6 +78,7 @@ jobs:
 
       - name: Check formatting with clang-format (Unix)
         if: runner.os != 'Windows'
+        working-directory: ${{ github.workspace }}
         shell: bash
         run: |
           echo "Running clang-format check..."
@@ -117,6 +118,7 @@ jobs:
 
       - name: Check formatting with clang-format (Windows)
         if: runner.os == 'Windows'
+        working-directory: ${{ github.workspace }}
         shell: pwsh
         run: |
           Write-Host "Running clang-format check..."
