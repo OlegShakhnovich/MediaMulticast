@@ -38,7 +38,7 @@ jobs:
             echo "BREW_LLVM_BIN=$(brew --prefix llvm)/bin" >> $GITHUB_ENV
             sudo xcode-select -switch /Applications/Xcode.app || true
           fi
-          
+
       - name: Check LLVM version (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -51,7 +51,6 @@ jobs:
           } else {
               $pattern = '(?i)(?:clang|llvm)(?:\.exe)?\s*(?:version)?\s*([\d]+(?:\.[\d]+){1,3})'
               $m = [regex]::Match($clangVersionStr, $pattern)
-
               if ($m.Success -and -not [string]::IsNullOrWhiteSpace($m.Groups[1].Value)) {
                   $verStr = $m.Groups[1].Value
                   try {
@@ -63,15 +62,15 @@ jobs:
                           Write-Host "LLVM version $currentVersion is sufficient. Skipping install."
                       }
                   } catch {
-                      Write-Host "Parsed version '$verStr' but failed to convert to System.Version. Installing/Upgrading LLVM as fallback..."
+                      Write-Host "Parsed version '$verStr' but failed to convert. Installing/Upgrading LLVM..."
                       choco install llvm -y
                   }
               } else {
-                  Write-Host "Could not parse clang/LLVM version output. Installing/Upgrading LLVM as fallback..."
+                  Write-Host "Could not parse clang/LLVM version output. Installing/Upgrading LLVM..."
                   choco install llvm -y
               }
           }
-          
+
       - name: Add LLVM to PATH
         shell: pwsh
         run: echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
@@ -109,7 +108,7 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Running clang-format check..."
-          $clangFile = Join-Path $PSScriptRoot ".clang-format"
+          $clangFile = Join-Path $env:GITHUB_WORKSPACE ".clang-format"
           if (-not (Test-Path $clangFile)) {
               Write-Host ".clang-format not found in repository root. Failing."
               exit 1
@@ -117,7 +116,7 @@ jobs:
 
           $files = Get-ChildItem -Recurse -Include *.cpp,*.hpp,*.h,*.cc src,include
           foreach ($f in $files) {
-              clang-format --dry-run --Werror $f.FullName
+              clang-format --dry-run --Werror -style=file $f.FullName
           }
 
       - name: Run clang-tidy analysis (Unix)
@@ -129,9 +128,9 @@ jobs:
           SDK_PATH=$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)
           if [[ -n "$SDK_PATH" ]]; then
             echo "Using macOS SDK: $SDK_PATH"
-            find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja -- -isysroot "$SDK_PATH" || true
+            find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja -- -isysroot "$SDK_PATH"
           else
-            find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja || true
+            find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja
           fi
 
       - name: Run clang-tidy analysis (Windows)
