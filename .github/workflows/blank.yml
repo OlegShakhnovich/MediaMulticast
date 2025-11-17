@@ -87,6 +87,10 @@ jobs:
 
           if [[ "$RUNNER_OS" == "macOS" ]]; then
             CF="${BREW_LLVM_BIN}/clang-format"
+            if [[ ! -x "$CF" ]]; then
+              echo "clang-format binary not found at $CF. Failing."
+              exit 1
+            fi
           else
             if command -v clang-format >/dev/null 2>&1; then
               CF=clang-format
