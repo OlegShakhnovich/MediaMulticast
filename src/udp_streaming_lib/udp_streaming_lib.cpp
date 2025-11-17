@@ -27,11 +27,11 @@ auto makeAddress(const std::string& host, const std::string& port) -> SocketAddr
         return res;  // Network init error
     };
 
-    struct addrinfo hints {};
+    struct addrinfo hints{};
     struct addrinfo* sysaddr = nullptr;
 
     std::memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;      // IPv4 или IPv6
+    hints.ai_family = AF_UNSPEC;      // IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM;  // TCP
 
     const int ERR = getaddrinfo(host.c_str(), port.c_str(), &hints, &sysaddr);
