@@ -27,7 +27,7 @@ auto makeAddress(const std::string& host, const std::string& port) -> SocketAddr
         return res;  // Network init error
     };
 
-    struct addrinfo hints{};
+    struct addrinfo hints {};
     struct addrinfo* sysaddr = nullptr;
 
     std::memset(&hints, 0, sizeof(hints));
