@@ -4,6 +4,9 @@ project(UdpStreamingLibTests LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 # GoogleTest
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
+
 include(FetchContent)
 FetchContent_Declare(
     googletest
