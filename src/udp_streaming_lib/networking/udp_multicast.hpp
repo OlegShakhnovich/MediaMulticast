@@ -11,14 +11,14 @@ enum class UdpMulticastResult {
 };
 
 class IStreamingCallback {
-   public:
+public:
     virtual ~IStreamingCallback() = default;
 
     virtual void onResult(UdpMulticastResult result) = 0;
 };
 
 class UdpMulticast {
-   public:
+public:
     UdpMulticast(
         std::string filename_,
         SocketAddress streamingAddress_,
@@ -51,7 +51,7 @@ class UdpMulticast {
         return 0;
     }
 
-   private:
+private:
     std::string filename;
     SocketAddress streamingAddress;
     IStreamingCallback* callback;

@@ -15,6 +15,7 @@
 
 #include "networking/net_utils.hpp"
 #include "networking/udp_multicast.hpp"
+#include "udp_streaming_lib_export.h"
 
 namespace {
 auto makeAddress(const std::string& host, const std::string& port) -> SocketAddress {
@@ -26,11 +27,11 @@ auto makeAddress(const std::string& host, const std::string& port) -> SocketAddr
         return res;  // Network init error
     };
 
-    struct addrinfo hints{};
+    struct addrinfo hints = {};
     struct addrinfo* sysaddr = nullptr;
 
     std::memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;      // IPv4 или IPv6
+    hints.ai_family = AF_UNSPEC;      // IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM;  // TCP
 
     const int ERR = getaddrinfo(host.c_str(), port.c_str(), &hints, &sysaddr);
@@ -55,7 +56,7 @@ auto safeString(const char* data, size_t length) -> std::string {
 }  // namespace
 
 class Streamer : public IStreamingCallback {
-   public:
+public:
     Streamer(const Streamer&) = delete;
     Streamer(Streamer&&) = delete;
     auto operator=(const Streamer&) -> Streamer& = delete;
@@ -64,10 +65,11 @@ class Streamer : public IStreamingCallback {
 
     auto startFileStreaming(
         const std::string& filename_,
+        size_t targetBitrate_,
         const std::string& address_,
+        size_t ttl_,
         const std::string& port_,
-        StreamingCallback callback_,
-        size_t targetBitrate_)
+        StreamingCallback callback_)
         -> UdpStreamingLibResult {
         if (!std::filesystem::exists(filename_)) {
             return STREAMING_LIB_ERROR_FILE_NOT_EXIST;
@@ -81,6 +83,7 @@ class Streamer : public IStreamingCallback {
 
         callback = callback_;
         targetBitrate = targetBitrate_;
+        ttl = ttl_;
 
         streamer = std::make_unique<UdpMulticast>(filename, streamingAddress, this, targetBitrate);
 
@@ -140,12 +143,13 @@ class Streamer : public IStreamingCallback {
         return callIfContextValid([](UdpMulticast* streamer) -> size_t { return streamer->getCurrentPosition(); });
     }
 
-   private:
+private:
     std::unique_ptr<UdpMulticast> streamer;
     SocketAddress streamingAddress{};
     std::string filename;
     StreamingCallback callback;
     size_t targetBitrate;
+    size_t ttl;
 };
 
 // NOLINTBEGIN
@@ -173,10 +177,11 @@ UDP_STREAMING_LIB_API auto startFileStreaming(
     }
     return context->instance->startFileStreaming(
         safeString(filename, filenameLength),
+        targetBitrate,
         safeString(address, addressLength),
+        0,
         safeString(port, portLength),
-        callback,
-        targetBitrate);
+        callback);
 }
 
 UDP_STREAMING_LIB_API size_t stopStreaming(UdpStreamingLibContext* context) {

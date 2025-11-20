@@ -13,7 +13,7 @@ constexpr std::string_view TEST_PORT = "5000";
 }  // namespace
 
 class UdpStreamingLibTest : public ::testing::Test {
-   protected:
+protected:
     auto SetUp() -> void override {
         ctx = udpStreamingLibCreate();
         ASSERT_NE(ctx, nullptr) << "udpStreamingLibCreate() returned NULL";
@@ -28,7 +28,7 @@ class UdpStreamingLibTest : public ::testing::Test {
 
     [[nodiscard]] auto getCtx() const -> UdpStreamingLibContext* { return ctx; }
 
-   private:
+private:
     UdpStreamingLibContext* ctx = nullptr;
     /*
     std::atomic<UdpStreamingLibCallbackResult> callbackResult{};
