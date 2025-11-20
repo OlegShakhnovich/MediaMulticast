@@ -25,7 +25,7 @@ enum class LogLevel : uint8_t {
 };
 
 class Logger {
-   public:
+public:
     using Sink = std::function<void(std::string)>;
 
     Logger() noexcept
@@ -81,7 +81,7 @@ class Logger {
         return inst;
     }
 
-   private:
+private:
     std::atomic<LogLevel> logLevel{LogLevel::INFO};
     Sink sink;
     std::mutex mutex;

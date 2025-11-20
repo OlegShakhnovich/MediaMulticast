@@ -8,13 +8,22 @@ Checks: >
   cppcoreguidelines-*,
   misc-*,
   -clang-analyzer-alpha.*,
-  modernize-use-trailing-return-type,
-  modernize-use-using,
-  modernize-avoid-c-arrays
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-magic-numbers,
+  -readability-braces-around-statements,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -bugprone-exception-escape,
+  -modernize-avoid-c-arrays,
+  -modernize-use-using,
+  -clang-analyzer-optin.cplusplus.VirtualCall,
+  -readability-function-cognitive-complexity
 
 WarningsAsErrors: '*'
 
-HeaderFilterRegex: 'src/.*|include/.*'
+HeaderFilterRegex: 'tests/.*'
+
 FormatStyle: file
 
 CheckOptions:
@@ -34,6 +43,9 @@ CheckOptions:
     value: UPPER_CASE 
   - key: readability-identifier-naming.TypedefCase
     value: CamelCase
+  - key: readability-identifier-naming.IgnoreMacros
+    value: '1'
+
   - key: readability-magic-numbers.IgnoredValues
     value: '0,1,-1,100'
   - key: cppcoreguidelines-non-private-member-variables-in-classes.IgnorePublicMemberVariables

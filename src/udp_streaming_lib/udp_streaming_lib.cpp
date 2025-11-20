@@ -65,10 +65,12 @@ class Streamer : public IStreamingCallback {
 
     auto startFileStreaming(
         const std::string& filename_,
+        size_t targetBitrate_,
         const std::string& address_,
+        size_t ttl_,
         const std::string& port_,
-        StreamingCallback callback_,
-        size_t targetBitrate_)
+        StreamingCallback callback_
+        )
         -> UdpStreamingLibResult {
         if (!std::filesystem::exists(filename_)) {
             return STREAMING_LIB_ERROR_FILE_NOT_EXIST;
@@ -82,6 +84,7 @@ class Streamer : public IStreamingCallback {
 
         callback = callback_;
         targetBitrate = targetBitrate_;
+        ttl = ttl_;
 
         streamer = std::make_unique<UdpMulticast>(filename, streamingAddress, this, targetBitrate);
 
@@ -147,6 +150,7 @@ class Streamer : public IStreamingCallback {
     std::string filename;
     StreamingCallback callback;
     size_t targetBitrate;
+    size_t ttl;
 };
 
 // NOLINTBEGIN
@@ -174,10 +178,12 @@ UDP_STREAMING_LIB_API auto startFileStreaming(
     }
     return context->instance->startFileStreaming(
         safeString(filename, filenameLength),
+        targetBitrate,
         safeString(address, addressLength),
+        0,
         safeString(port, portLength),
-        callback,
-        targetBitrate);
+        callback
+        );
 }
 
 UDP_STREAMING_LIB_API size_t stopStreaming(UdpStreamingLibContext* context) {
