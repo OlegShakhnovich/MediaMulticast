@@ -1,50 +1,54 @@
 #include <gtest/gtest.h>
 
-#include "udp_streaming_lib_export.h"
-// #include "udp_streaming_lib.hpp"
-
 #include <string_view>
 
-class UdpStreamingLibTest : public ::testing::Test {
-   private:
-    UdpStreamingLibContext* ctx = nullptr;
-    /* std::atomic<UdpStreamingLibCallbackResult> callbackResult{};
-    std::atomic<bool> callbackCalled{false};
+#include "udp_streaming_lib_export.h"
 
-    static void testCallback(UdpStreamingLibTest* self, UdpStreamingLibCallbackResult result) {
-        self->callbackResult = result;
-        self->callbackCalled = true;
-    }*/
-
-   protected:
-    [[nodiscard]] auto getCtx() const -> UdpStreamingLibContext* { return ctx; }
-
-    void SetUp() override {
-        ctx = udpStreamingLibCreate();
-        ASSERT_NE(ctx, nullptr) << "udpStreamingLibCreate() returns NULL";
-    }
-
-    void TearDown() override {
-        if (ctx) {
-            udpStreamingLibDestroy(ctx);
-            ctx = nullptr;
-        }
-    }
-};
-
+namespace {
 constexpr std::string_view TEST_FILE_NAME = "test.ts";
 constexpr std::string_view NONEXISTENT_FILE_NAME = "nonexistent_file.ts";
 constexpr std::string_view TEST_IP = "127.0.0.1";
 constexpr std::string_view INVALID_IP = "invalid_ip";
 constexpr std::string_view TEST_PORT = "5000";
+}  // namespace
+
+class UdpStreamingLibTest : public ::testing::Test {
+   protected:
+    auto SetUp() -> void override {
+        ctx = udpStreamingLibCreate();
+        ASSERT_NE(ctx, nullptr) << "udpStreamingLibCreate() returned NULL";
+    }
+
+    auto TearDown() -> void override {
+        if (ctx != nullptr) {
+            udpStreamingLibDestroy(ctx);
+            ctx = nullptr;
+        }
+    }
+
+    [[nodiscard]] auto getCtx() const -> UdpStreamingLibContext* { return ctx; }
+
+   private:
+    UdpStreamingLibContext* ctx = nullptr;
+    /*
+    std::atomic<UdpStreamingLibCallbackResult> callbackResult{};
+    std::atomic<bool> callbackCalled{false};
+
+    static void testCallback(UdpStreamingLibTest* self, UdpStreamingLibCallbackResult result) {
+        self->callbackResult = result;
+        self->callbackCalled = true;
+    }
+    */
+};
 
 // ---------- Tests ----------
+
 TEST_F(UdpStreamingLibTest, CreateAndDestroyContext) {
     ASSERT_NE(getCtx(), nullptr);
 }
 
 TEST(UdpStreamingLibTest, InvalidContextReturnsError) {
-    const UdpStreamingLibResult RES = startFileStreaming(
+    const auto RES = startFileStreaming(
         nullptr,
         TEST_FILE_NAME.data(),
         TEST_FILE_NAME.size(),
@@ -54,10 +58,12 @@ TEST(UdpStreamingLibTest, InvalidContextReturnsError) {
         TEST_PORT.size(),
         nullptr,
         0);
+
     EXPECT_EQ(RES, STREAMING_LIB_ERROR_INVALID_CONTEXT);
 }
+
 TEST_F(UdpStreamingLibTest, FileExists) {
-    const UdpStreamingLibResult RES = startFileStreaming(
+    const auto RES = startFileStreaming(
         getCtx(),
         TEST_FILE_NAME.data(),
         TEST_FILE_NAME.size(),
@@ -67,11 +73,12 @@ TEST_F(UdpStreamingLibTest, FileExists) {
         TEST_PORT.size(),
         nullptr,
         0);
+
     EXPECT_EQ(RES, STREAMING_LIB_OK);
 }
 
 TEST_F(UdpStreamingLibTest, FileDoesNotExist) {
-    const UdpStreamingLibResult RES = startFileStreaming(
+    const auto RES = startFileStreaming(
         getCtx(),
         NONEXISTENT_FILE_NAME.data(),
         NONEXISTENT_FILE_NAME.size(),
@@ -81,11 +88,12 @@ TEST_F(UdpStreamingLibTest, FileDoesNotExist) {
         TEST_PORT.size(),
         nullptr,
         0);
+
     EXPECT_EQ(RES, STREAMING_LIB_ERROR_FILE_NOT_EXIST);
 }
 
 TEST_F(UdpStreamingLibTest, InvalidIpAddress) {
-    const UdpStreamingLibResult RES = startFileStreaming(
+    const auto RES = startFileStreaming(
         getCtx(),
         TEST_FILE_NAME.data(),
         TEST_FILE_NAME.size(),
@@ -95,6 +103,7 @@ TEST_F(UdpStreamingLibTest, InvalidIpAddress) {
         TEST_PORT.size(),
         nullptr,
         0);
+
     EXPECT_EQ(RES, STREAMING_LIB_ERROR_WRONG_IP_ADDRESS);
 }
 
