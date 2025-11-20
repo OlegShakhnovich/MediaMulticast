@@ -56,7 +56,7 @@ auto safeString(const char* data, size_t length) -> std::string {
 }  // namespace
 
 class Streamer : public IStreamingCallback {
-   public:
+public:
     Streamer(const Streamer&) = delete;
     Streamer(Streamer&&) = delete;
     auto operator=(const Streamer&) -> Streamer& = delete;
@@ -69,8 +69,7 @@ class Streamer : public IStreamingCallback {
         const std::string& address_,
         size_t ttl_,
         const std::string& port_,
-        StreamingCallback callback_
-        )
+        StreamingCallback callback_)
         -> UdpStreamingLibResult {
         if (!std::filesystem::exists(filename_)) {
             return STREAMING_LIB_ERROR_FILE_NOT_EXIST;
@@ -144,7 +143,7 @@ class Streamer : public IStreamingCallback {
         return callIfContextValid([](UdpMulticast* streamer) -> size_t { return streamer->getCurrentPosition(); });
     }
 
-   private:
+private:
     std::unique_ptr<UdpMulticast> streamer;
     SocketAddress streamingAddress{};
     std::string filename;
@@ -182,8 +181,7 @@ UDP_STREAMING_LIB_API auto startFileStreaming(
         safeString(address, addressLength),
         0,
         safeString(port, portLength),
-        callback
-        );
+        callback);
 }
 
 UDP_STREAMING_LIB_API size_t stopStreaming(UdpStreamingLibContext* context) {
