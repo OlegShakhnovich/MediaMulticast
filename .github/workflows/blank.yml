@@ -35,6 +35,7 @@ jobs:
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             brew install llvm
             echo "BREW_LLVM_BIN=$(brew --prefix llvm)/bin" >> $GITHUB_ENV
+            echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
             sudo xcode-select -switch /Applications/Xcode.app || true
           fi
 
