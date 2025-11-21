@@ -1,6 +1,6 @@
 #include "file_reader/file_reader.hpp"
 
-auto main() -> int {
+int main() {  // NOLINT(modernize-use-trailing-return-type)
     FileReader::doSomething();
     return 0;
 }

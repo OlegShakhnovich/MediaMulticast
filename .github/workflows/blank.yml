@@ -7,7 +7,6 @@ on:
     branches: [ "develop" ]
   pull_request:
     branches: [ "develop" ]
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -36,9 +35,10 @@ jobs:
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             brew install llvm
             echo "BREW_LLVM_BIN=$(brew --prefix llvm)/bin" >> $GITHUB_ENV
+            echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
             sudo xcode-select -switch /Applications/Xcode.app || true
           fi
-          
+
       - name: Check LLVM version (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -51,7 +51,6 @@ jobs:
           } else {
               $pattern = '(?i)(?:clang|llvm)(?:\.exe)?\s*(?:version)?\s*([\d]+(?:\.[\d]+){1,3})'
               $m = [regex]::Match($clangVersionStr, $pattern)
-
               if ($m.Success -and -not [string]::IsNullOrWhiteSpace($m.Groups[1].Value)) {
                   $verStr = $m.Groups[1].Value
                   try {
@@ -63,67 +62,86 @@ jobs:
                           Write-Host "LLVM version $currentVersion is sufficient. Skipping install."
                       }
                   } catch {
-                      Write-Host "Parsed version '$verStr' but failed to convert to System.Version. Installing/Upgrading LLVM as fallback..."
+                      Write-Host "Parsed version '$verStr' but failed to convert. Installing/Upgrading LLVM..."
                       choco install llvm -y
                   }
               } else {
-                  Write-Host "Could not parse clang/LLVM version output. Installing/Upgrading LLVM as fallback..."
+                  Write-Host "Could not parse clang/LLVM version output. Installing/Upgrading LLVM..."
                   choco install llvm -y
               }
           }
-          
+
       - name: Add LLVM to PATH
         shell: pwsh
         run: echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
 
-      - name: Check formatting with clang-format (Unix)
+
+      - name: Check LLVM version (Unix)
         if: runner.os != 'Windows'
         shell: bash
         run: |
+          echo "Checking clang/clang-format version..."
+          clang-format --version
+          clang-tidy --version
+
+      - name: Check LLVM version (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          clang --version
+          clang-format --version
+          clang-tidy --version
+
+      - name: Check formatting with clang-format (Unix)
+        if: runner.os != 'Windows'
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        run: |
           echo "Running clang-format check..."
-          if command -v clang-format >/dev/null 2>&1; then
-            CF=clang-format
-          elif [[ -n "${BREW_LLVM_BIN:-}" && -x "${BREW_LLVM_BIN}/clang-format" ]]; then
-            CF="${BREW_LLVM_BIN}/clang-format"
-          elif command -v brew >/dev/null 2>&1; then
-            brew install llvm
-            export BREW_LLVM_BIN="$(brew --prefix llvm)/bin"
-            CF="${BREW_LLVM_BIN}/clang-format"
-          else
-            echo "clang-format not found and brew unavailable. Failing."
+          if [[ ! -f .clang-format ]]; then
+            echo ".clang-format not found in repository root. Failing."
             exit 1
+          fi
+
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            CF="${BREW_LLVM_BIN}/clang-format"
+            if [[ ! -x "$CF" ]]; then
+              echo "clang-format binary not found at $CF. Failing."
+              exit 1
+            fi
+          else
+            if command -v clang-format >/dev/null 2>&1; then
+              CF=clang-format
+            else
+              echo "clang-format not found. Failing."
+              exit 1
+            fi
           fi
 
           echo "Using clang-format at: $CF"
           rc=0
-          
           while IFS= read -r -d '' f; do
-            "$CF" --dry-run --Werror "$f" || rc=1
+            "$CF" --dry-run --Werror -style=file -assume-filename="$f" "$f" || rc=1
           done < <(find src include -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' \) -print0)
-          exit $rc
-          
-          mapfile -t files < <(find src include -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' \))
-          if [ "${#files[@]}" -eq 0 ]; then
-            echo "No source files found."
-            exit 0
-          fi
-          
-          echo "Using clang-format at: $CF"
-          rc=0
-          for f in "${files[@]}"; do
-            "$CF" --dry-run --Werror "$f" || rc=1
-          done
           exit $rc
 
       - name: Check formatting with clang-format (Windows)
         if: runner.os == 'Windows'
+        working-directory: ${{ github.workspace }}
         shell: pwsh
         run: |
           Write-Host "Running clang-format check..."
-          $files = Get-ChildItem -Recurse -Include *.cpp,*.hpp,*.h,*.cc src,include
-          foreach ($f in $files) {
-              clang-format --dry-run --Werror $f.FullName
+          $clangFile = Join-Path $env:GITHUB_WORKSPACE ".clang-format"
+          if (-not (Test-Path $clangFile)) {
+              Write-Host ".clang-format not found in repository root. Failing."
+              exit 1
           }
+
+          $files = Get-ChildItem -Recurse -Include *.cpp,*.hpp,*.h,*.cc src,include | ForEach-Object { $_.FullName }
+          foreach ($f in $files) {
+              clang-format --dry-run --Werror -style=file -assume-filename="$f" "$f"
+          }
+
       - name: Run clang-tidy analysis (Unix)
         if: runner.os != 'Windows'
         shell: bash
@@ -133,9 +151,9 @@ jobs:
           SDK_PATH=$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)
           if [[ -n "$SDK_PATH" ]]; then
             echo "Using macOS SDK: $SDK_PATH"
-            find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja -- -isysroot "$SDK_PATH" || true
+            find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja -- -isysroot "$SDK_PATH"
           else
-            find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja || true
+            find src include -name '*.cpp' -print0 | xargs -0 -n1 clang-tidy -p build_ninja
           fi
 
       - name: Run clang-tidy analysis (Windows)
