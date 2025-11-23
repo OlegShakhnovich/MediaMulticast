@@ -86,5 +86,5 @@ jobs:
         run: |
           echo "llvm_path from export-path-linux: ${{ steps.export-path-linux.outputs.llvm_path }}"
           echo "llvm_path from export-path-macos: ${{ steps.export-path-macos.outputs.llvm_path }}"
-          cho "llvm_path from export-path-windows: ${{ steps.export-path-windows.outputs.llvm_path }}"
+          echo "llvm_path from export-path-windows: ${{ steps.export-path-windows.outputs.llvm_path }}"
           

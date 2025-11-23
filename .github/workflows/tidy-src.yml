@@ -20,6 +20,42 @@ jobs:
       - name: Add LLVM to PATH
         run: echo "${{ inputs.llvm_path }}" >> $GITHUB_PATH
 
+      - name: Inspect LLVM Path and Installation
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          echo "LLVM Path from inputs: '${{ inputs.llvm_path }}'"
+          echo "=== Checking directory existence and contents ==="
+          if [ -d "${{ inputs.llvm_path }}" ]; then
+            echo "Directory exists. Contents:"
+            ls -la "${{ inputs.llvm_path }}/" | head -20
+          else
+            echo "ERROR: Directory does not exist!"
+          fi
+          echo "=== Checking which clang-tidy is being used ==="
+          which clang-tidy || echo "clang-tidy not found in PATH"
+          echo "=== Actual clang-tidy version ==="
+          clang-tidy --version || echo "Cannot run clang-tidy"
+
+      - name: Inspect LLVM Path (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "LLVM Path from inputs: '${{ inputs.llvm_path }}'"
+          Write-Host "=== Checking directory existence and contents ==="
+          if (Test-Path "${{ inputs.llvm_path }}") {
+            Write-Host "Directory exists. Contents:"
+            Get-ChildItem "${{ inputs.llvm_path }}\" | Select-Object -First 20
+          } else {
+            Write-Host "ERROR: Directory does not exist!"
+          }
+          Write-Host "=== Checking which clang-tidy is being used ==="
+          Get-Command clang-tidy -ErrorAction SilentlyContinue
+          Write-Host "=== Actual clang-tidy version ==="
+          clang-tidy --version 2>&1 | Out-Host
+
+
+
       - name: Check llvm
         run: |
           clang --version || true
