@@ -49,13 +49,16 @@ jobs:
             New-Item -ItemType Directory -Force -Path $dest | Out-Null
           }
           tar -xf $archive -C $dest --strip-components=1
-          "$dest/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
+          echo "$dest/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
 
-      - name: Check llvm
+      - name: Verify installation
         run: |
-          clang --version || true
-          clang-format --version || true
-          clang-tidy --version || true
+          echo "=== Checking clang version ==="
+          clang --version || echo "clang not found"
+          echo "=== Checking clang-tidy version ==="
+          clang-tidy --version || echo "clang-tidy not found"
+          echo "=== Checking clang-format version ==="
+          clang-format --version || echo "clang-format not found"
           
       - name: Export final LLVM path on Linux
         id: export-path-linux
@@ -76,5 +79,5 @@ jobs:
         if: ${{ inputs.runner == 'windows-latest' }}
         shell: pwsh
         run: |
-          "llvm_path=C:/LLVM/bin" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          echo "llvm_path=C:\LLVM\bin" >> $env:GITHUB_OUTPUT
           

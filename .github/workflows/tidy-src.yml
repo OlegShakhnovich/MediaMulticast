@@ -26,6 +26,17 @@ jobs:
           clang-format --version || true
           clang-tidy --version || true
 
+      - name: Check actual LLVM version (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "Which clang-tidy is being used:"
+          Get-Command clang-tidy
+          Write-Host "Clang-tidy version:"
+          clang-tidy --version
+          Write-Host "LLVM Path from inputs: ${{ inputs.llvm_path }}"
+
+
       - name: Debug LLVM path on Windows
         if: runner.os == 'Windows'
         shell: pwsh
