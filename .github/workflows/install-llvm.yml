@@ -14,7 +14,7 @@ jobs:
   install:
     runs-on: ${{ inputs.runner }}
     outputs:
-      llvm-bin-path: ${{ steps.export-path-${{ inputs.runner }}.outputs.llvm_path }}
+      llvm-bin-path: ${{ steps.export-path-inputs.runner.outputs.llvm_path }}
 
     steps:
       - name: Install LLVM on Linux
