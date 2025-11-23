@@ -37,16 +37,16 @@ jobs:
           brew pin llvm@21
           echo "$(brew --prefix llvm@21)/bin" >> $GITHUB_PATH
 
-      - name: Install LLVM on Windows (official installer)
+      - name: Install LLVM on Windows
         if: ${{ inputs.runner == 'windows-latest' }}
         shell: pwsh
         run: |
-          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-win64.zip"
-          Invoke-WebRequest -Uri $url -OutFile llvm.zip
-          Expand-Archive llvm.zip -DestinationPath C:\LLVM
+          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-pc-windows-msvc.tar.xz"
+          Invoke-WebRequest -Uri $url -OutFile llvm.tar.xz
+          tar -xf llvm.tar.xz -C C:\LLVM --strip-components=1
           "C:\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
           echo "llvm_path=C:\LLVM\bin" >> $GITHUB_OUTPUT
-          
+
       - name: Check llvm
         run: |
           clang --version || true
