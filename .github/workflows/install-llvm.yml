@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-Linux-ARM64.tar.xz
-          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-ARM64.tar.xz
+          tar -xJf LLVM-21.1.6-Darwin-arm64.tar.xz
           mv LLVM-${{ inputs.llvm_version }}-Linux-ARM64 llvm
           echo "$PWD/llvm/bin" >> $GITHUB_PATH
 
@@ -68,7 +68,8 @@ jobs:
         id: export-path-macos
         if: ${{ inputs.runner == 'macos-latest' }}
         shell: bash
-        run: |      
+        run: |
+          echo "llvm_path=$PWD/llvm/bin" >> $GITHUB_OUTPUT    
           
       - name: Export final LLVM path on Windows
         id: export-path-windows
