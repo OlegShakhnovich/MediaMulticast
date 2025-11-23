@@ -5,16 +5,6 @@ on:
     branches: ["develop"]
   pull_request:
     branches: ["develop"]
-  workflow_dispatch:
-    inputs:
-      llvm_version:
-        description: 'LLVM Version'
-        required: true
-        default: '21.1.6'
-        type: string
-
-env:
-  LLVM_VERSION: ${{ github.event.inputs.llvm_version || '21.1.6' }}
 
 jobs:
 
@@ -22,19 +12,19 @@ jobs:
     uses: ./.github/workflows/install-llvm.yml
     with:
       runner: ubuntu-latest
-      llvm_version: ${{ env.LLVM_VERSION }}
+      llvm_version: "21.1.6"
 
   install-macos:
     uses: ./.github/workflows/install-llvm.yml
     with:
       runner: macos-latest
-      llvm_version: ${{ env.LLVM_VERSION }}
+      llvm_version: "21.1.6"
 
   install-windows:
     uses: ./.github/workflows/install-llvm.yml
     with:
       runner: windows-latest
-      llvm_version: ${{ env.LLVM_VERSION }}
+      llvm_version: "21.1.6"
 
   tidy-src-linux:
     needs: install-linux
