@@ -17,8 +17,33 @@ jobs:
       llvm-bin-path: ${{ steps.set-outputs.outputs.llvm_bin_path }}
 
     steps:
+
+      - name: Cache LLVM on Linux/macOS
+        if: ${{ inputs.runner != 'windows-latest' }}
+        id: cache-llvm-unix
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/llvm
+          key: ${{ inputs.runner }}-llvm-${{ inputs.llvm_version }}-${{ hashFiles('**/llvm-version.txt') }}
+          restore-keys: |
+            ${{ inputs.runner }}-llvm-${{ inputs.llvm_version }}-
+            ${{ inputs.runner }}-llvm-
+
+      - name: Cache LLVM on Windows
+        if: ${{ inputs.runner == 'windows-latest' }}
+        id: cache-llvm-windows
+        uses: actions/cache@v3
+        with:
+          path: C:\LLVM
+          key: windows-llvm-${{ inputs.llvm_version }}-${{ hashFiles('**/llvm-version.txt') }}
+          restore-keys: |
+            windows-llvm-${{ inputs.llvm_version }}-
+            windows-llvm-
+
+
+
       - name: Install LLVM on Linux
-        if: ${{ inputs.runner == 'ubuntu-latest' }}
+        if: ${{ inputs.runner == 'ubuntu-latest' && steps.cache-llvm-unix.outputs.cache-hit != 'true'}}
         shell: bash
         run: |
           sudo apt-get update
@@ -29,7 +54,7 @@ jobs:
           echo "$PWD/llvm/bin" >> $GITHUB_PATH
 
       - name: Install LLVM on macOS
-        if: ${{ inputs.runner == 'macos-latest' }}
+        if: ${{ inputs.runner == 'macos-latest' && steps.cache-llvm-unix.outputs.cache-hit != 'true'}}
         shell: bash
         run: |
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
@@ -38,7 +63,7 @@ jobs:
           echo "$PWD/llvm/bin" >> $GITHUB_PATH
 
       - name: Install LLVM on Windows
-        if: ${{ inputs.runner == 'windows-latest' }}
+        if: ${{ inputs.runner == 'windows-latest' && steps.cache-llvm-windows.outputs.cache-hit != 'true'}}
         shell: pwsh
         run: |
           $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-pc-windows-msvc.tar.xz"
@@ -59,6 +84,8 @@ jobs:
           clang-tidy --version || echo "clang-tidy not found"
           echo "=== Checking clang-format version ==="
           clang-format --version || echo "clang-format not found"
+          echo "=== Cache status ==="
+          echo "Cache hit: ${{ steps.cache-llvm-unix.outputs.cache-hit || steps.cache-llvm-windows.outputs.cache-hit }}"
           
       - name: Export final LLVM path on Linux
         id: export-path-linux
@@ -98,6 +125,6 @@ jobs:
       - name: Debug LLVM path output
         shell: bash
         run: |
-          echo "llvm_path from export-path: ${{ steps.set-outputs.outputs.llvm_bin_path }}
+          echo "llvm_path from outputs: ${{ steps.set-outputs-linux.outputs.llvm_bin_path || steps.set-outputs-macos.outputs.llvm_bin_path || steps.set-outputs-windows.outputs.llvm_bin_path }}"
 
           
