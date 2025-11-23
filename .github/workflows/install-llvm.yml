@@ -95,4 +95,9 @@ jobs:
           echo "LLVM bin path that will be exported:"
           echo "C:\LLVM\bin"
 
+      - name: Debug LLVM path output
+        shell: bash
+        run: |
+          echo "llvm_path from export-path: ${{ steps.export-path-inputs.runner.outputs.llvm_path }}
+
           
