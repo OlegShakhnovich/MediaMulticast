@@ -31,63 +31,63 @@ jobs:
     uses: ./.github/workflows/tidy-src.yml
     with:
       runner: ubuntu-latest
-      llvm_path: ${{ needs.install-ubuntu-latest.outputs.llvm-bin-path }}
+      llvm_path: ${{ needs.install-linux.outputs.llvm-bin-path }}
 
   tidy-src-macos:
     needs: install-macos
     uses: ./.github/workflows/tidy-src.yml
     with:
       runner: macos-latest
-      llvm_path: ${{ needs.install-macos-latest.outputs.llvm-bin-path }}
+      llvm_path: ${{ needs.install-macos.outputs.llvm-bin-path }}
 
   tidy-src-windows:
     needs: install-windows
     uses: ./.github/workflows/tidy-src.yml
     with:
       runner: windows-latest
-      llvm_path: ${{ needs.install-windows-latest.outputs.llvm-bin-path }}
+      llvm_path: ${{ needs.install-windows.outputs.llvm-bin-path }}
 
   tidy-tests-linux:
     needs: install-linux
     uses: ./.github/workflows/tidy-tests.yml
     with:
       runner: ubuntu-latest
-      llvm_path: ${{ needs.install-ubuntu-latest.outputs.llvm-bin-path }}
+      llvm_path: ${{ needs.install-linux.outputs.llvm-bin-path }}
 
   tidy-tests-macos:
     needs: install-macos
     uses: ./.github/workflows/tidy-tests.yml
     with:
       runner: macos-latest
-      llvm_path: ${{ needs.install-macos-latest.outputs.llvm-bin-path }}
+      llvm_path: ${{ needs.install-macos.outputs.llvm-bin-path }}
 
   tidy-tests-windows:
     needs: install-windows
     uses: ./.github/workflows/tidy-tests.yml
     with:
       runner: windows-latest
-      llvm_path: ${{ needs.install-windows-latest.outputs.llvm-bin-path }}
+      llvm_path: ${{ needs.install-windows.outputs.llvm-bin-path }}
 
   build-linux:
     needs: [tidy-src-linux, tidy-tests-linux]
     uses: ./.github/workflows/build.yml
     with:
       runner: ubuntu-latest
-      llvm_path: ${{ needs.install-ubuntu-latest.outputs.llvm-bin-path }}
+      llvm_path: ${{ needs.install-linux.outputs.llvm-bin-path }}
 
   build-macos:
     needs: [tidy-tests-macos, tidy-src-macos]
     uses: ./.github/workflows/build.yml
     with:
       runner: macos-latest
-      llvm_path: ${{ needs.install-macos-latest.outputs.llvm-bin-path }}
+      llvm_path: ${{ needs.install-macos.outputs.llvm-bin-path }}
 
   build-windows:
     needs: [tidy-tests-windows, tidy-src-windows]
     uses: ./.github/workflows/build.yml
     with:
       runner: windows-latest
-      llvm_path: ${{ needs.install-windows-latest.outputs.llvm-bin-path }}
+      llvm_path: ${{ needs.install-windows.outputs.llvm-bin-path }}
 
   test-linux:
     needs: [build-linux]

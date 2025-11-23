@@ -14,7 +14,7 @@ jobs:
   install:
     runs-on: ${{ inputs.runner }}
     outputs:
-      llvm-bin-path: ${{ steps.export-path-inputs.runner.outputs.llvm_path }}
+      llvm-bin-path: ${{ steps.set-outputs.outputs.llvm_bin_path }}
 
     steps:
       - name: Install LLVM on Linux
@@ -79,7 +79,7 @@ jobs:
         if: ${{ inputs.runner == 'windows-latest' }}
         shell: pwsh
         run: |
-          echo "llvm_path=C:\LLVM\bin" >> $env:GITHUB_OUTPUT
+          echo "llvm_path=C:\LLVM\bin" >> $GITHUB_OUTPUT
 
       - name: Debug LLVM path output on Linux/macOS
         if: ${{ inputs.runner != 'windows-latest' }}
@@ -98,6 +98,6 @@ jobs:
       - name: Debug LLVM path output
         shell: bash
         run: |
-          echo "llvm_path from export-path: ${{ steps.export-path-inputs.runner.outputs.llvm_path }}
+          echo "llvm_path from export-path: ${{ steps.set-outputs.outputs.llvm_bin_path }}
 
           
