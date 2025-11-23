@@ -23,7 +23,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: build_tidy_tests
-          key: ${{ inputs.runner }}-tidy-tests-${{ hashFiles('tests/**/*.cpp','tests/**/*.cc','tests/**/*.h','tests/**/*.hpp') }}
+          key: ${{ inputs.runner }}-tidy-tests-${{ hashFiles('tests/**/*.cpp', 'tests/**/*.cc', 'tests/**/*.h', 'tests/**/*.hpp') }}
             
       - name: Generate compile_commands.json (Linux/macOS)
         if: runner.os != 'Windows'

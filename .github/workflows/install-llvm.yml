@@ -23,16 +23,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y wget xz-utils
-
-          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-linux-gnu-ubuntu-22.04.tar.xz
-          tar -xf clang+llvm-${{ inputs.llvm_version }}-x86_64-linux-gnu-ubuntu-22.04.tar.xz
-          mv clang+llvm-${{ inputs.llvm_version }}-x86_64-linux-gnu-ubuntu-22.04 llvm
+          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
+          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
+          mv LLVM-${{ inputs.llvm_version }}-Linux-X64 llvm
           echo "$PWD/llvm/bin" >> $GITHUB_PATH
 
       - name: Install LLVM on macOS
         if: ${{ inputs.runner == 'macos-latest' }}
         shell: bash
         run: |
+          brew update
           brew install llvm@21
           brew pin llvm@21
           echo "$(brew --prefix llvm@21)/bin" >> $GITHUB_PATH
