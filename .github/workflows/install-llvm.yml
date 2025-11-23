@@ -80,4 +80,11 @@ jobs:
         shell: pwsh
         run: |
           echo "llvm_path=C:\LLVM\bin" >> $env:GITHUB_OUTPUT
+
+      - name: Debug LLVM path output
+        shell: bash
+        run: |
+          echo "llvm_path from export-path-linux: ${{ steps.export-path-linux.outputs.llvm_path }}"
+          echo "llvm_path from export-path-macos: ${{ steps.export-path-macos.outputs.llvm_path }}"
+          cho "llvm_path from export-path-windows: ${{ steps.export-path-windows.outputs.llvm_path }}"
           
