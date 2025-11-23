@@ -41,10 +41,11 @@ jobs:
         if: ${{ inputs.runner == 'windows-latest' }}
         shell: pwsh
         run: |
-          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-win64.exe"
-          Invoke-WebRequest -Uri $url -OutFile llvm-installer.exe
-          Start-Process .\\llvm-installer.exe -ArgumentList "/S", "/D=C:\\LLVM" -Wait
-          "C:\\LLVM\\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
+          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-win64.zip"
+          Invoke-WebRequest -Uri $url -OutFile llvm.zip
+          Expand-Archive llvm.zip -DestinationPath C:\LLVM
+          "C:\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
+          echo "llvm_path=C:\LLVM\bin" >> $GITHUB_OUTPUT
           
       - name: Check llvm
         run: |
