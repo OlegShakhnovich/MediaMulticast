@@ -33,9 +33,10 @@ jobs:
         shell: bash
         run: |
           brew update
-          brew install llvm@21
+          brew install llvm@21 clang-tidy
           brew pin llvm@21
           echo "$(brew --prefix llvm@21)/bin" >> $GITHUB_PATH
+          echo "$(brew --prefix clang-tidy)/bin" >> $GITHUB_PATH
 
       - name: Install LLVM on Windows
         if: ${{ inputs.runner == 'windows-latest' }}
