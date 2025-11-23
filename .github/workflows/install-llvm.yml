@@ -28,6 +28,7 @@ jobs:
           restore-keys: |
             ${{ inputs.runner }}-llvm-archive-
 
+
       - name: Download LLVM archive for Linux
         if: ${{ inputs.runner == 'ubuntu-latest' && steps.cache-llvm-archives.outputs.cache-hit != 'true' }}
         shell: bash
@@ -88,46 +89,39 @@ jobs:
           echo "=== Checking clang-format version ==="
           clang-format --version || echo "clang-format not found"
           echo "=== Cache status ==="
-          echo "Archive cache hit: ${{ steps.cache-llvm-archives.outputs.cache-hit }}"
-          
-      - name: Export final LLVM path on Linux
-        id: export-path-linux
+          echo "Archive cache hit: ${{ steps.cache-llvm-archives.outputs.cache-hit }}" || echo "No cache"
+
+      
+      - name: Create LLVM path file for Linux
         if: ${{ inputs.runner == 'ubuntu-latest' }}
         shell: bash
         run: |
-          echo "llvm_path=$PWD/llvm/bin" >> $GITHUB_OUTPUT
-          
-      - name: Export final LLVM path on macOS
-        id: export-path-macos
+          echo "$PWD/llvm/bin" > llvm_path.txt
+      
+      - name: Create LLVM path file for macOS
         if: ${{ inputs.runner == 'macos-latest' }}
         shell: bash
         run: |
-          echo "llvm_path=$PWD/llvm/bin" >> $GITHUB_OUTPUT    
-          
-      - name: Export final LLVM path on Windows
-        id: export-path-windows
+          echo "$PWD/llvm/bin" > llvm_path.txt
+
+      - name: Create LLVM path file for Windows
         if: ${{ inputs.runner == 'windows-latest' }}
         shell: pwsh
         run: |
-          echo "llvm_path=C:\LLVM\bin" >> $GITHUB_OUTPUT
+          "C:\LLVM\bin" | Out-File -FilePath llvm_path.txt -Encoding utf8
 
-      - name: Debug LLVM path output on Linux/macOS
-        if: ${{ inputs.runner != 'windows-latest' }}
+      - name: Set LLVM bin path output
+        id: set-outputs
+        run: |
+          echo "llvm_bin_path=$(cat llvm_path.txt)" >> $GITHUB_OUTPUT
         shell: bash
-        run: |
-          echo "LLVM bin path that will be exported:"
-          echo "$PWD/llvm/bin"
-
-      - name: Debug LLVM path output on Windows
-        if: ${{ inputs.runner == 'windows-latest' }}
-        shell: pwsh
-        run: |
-          echo "LLVM bin path that will be exported:"
-          echo "C:\LLVM\bin"
 
       - name: Debug LLVM path output
         shell: bash
         run: |
-          echo "llvm_path from outputs: ${{ steps.set-outputs-linux.outputs.llvm_bin_path || steps.set-outputs-macos.outputs.llvm_bin_path || steps.set-outputs-windows.outputs.llvm_bin_path }}"
+          echo "llvm_bin_path from set-outputs: ${{ steps.set-outputs.outputs.llvm_bin_path }}"
+          echo "Contents of llvm_path.txt:"
+          cat llvm_path.txt
+
 
           
