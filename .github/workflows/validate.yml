@@ -8,11 +8,11 @@ on:
 
 jobs:
 
-  #install-linux:
-   # uses: ./.github/workflows/install-llvm.yml
-   # with:
-   #   runner: ubuntu-latest
-   #   llvm_version: "21.1.6"
+  install-linux:
+    uses: ./.github/workflows/install-llvm.yml
+    with:
+      runner: ubuntu-latest
+      llvm_version: "21.1.6"
 
   install-macos:
     uses: ./.github/workflows/install-llvm.yml
@@ -20,11 +20,11 @@ jobs:
       runner: macos-latest
       llvm_version: "21.1.6"
 
- # install-windows:
-  #  uses: ./.github/workflows/install-llvm.yml
-  #  with:
-  #    runner: windows-latest
-  #    llvm_version: "21.1.6"
+  install-windows:
+    uses: ./.github/workflows/install-llvm.yml
+    with:
+      runner: windows-latest
+      llvm_version: "21.1.6"
 
   tidy-src-linux:
     needs: install-linux
