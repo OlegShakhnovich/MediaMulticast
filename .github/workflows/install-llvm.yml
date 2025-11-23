@@ -42,9 +42,14 @@ jobs:
         shell: pwsh
         run: |
           $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-pc-windows-msvc.tar.xz"
-          Invoke-WebRequest -Uri $url -OutFile llvm.tar.xz
-          tar -xf llvm.tar.xz -C C:\LLVM --strip-components=1
-          "C:\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
+          $archive = "llvm.tar.xz"
+          Invoke-WebRequest -Uri $url -OutFile $archive
+          $dest = "C:\LLVM"
+          if (-Not (Test-Path $dest)) {
+            New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          }
+          tar -xf $archive -C $dest --strip-components=1
+          "$dest\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
           echo "llvm_path=C:\LLVM\bin" >> $GITHUB_OUTPUT
 
       - name: Check llvm
