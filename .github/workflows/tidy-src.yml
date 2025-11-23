@@ -19,6 +19,18 @@ jobs:
 
       - name: Add LLVM to PATH
         run: echo "${{ inputs.llvm_path }}" >> $GITHUB_PATH
+
+      - name: Check llvm
+        run: |
+          clang --version || true
+          clang-format --version || true
+          clang-tidy --version || true
+
+      - name: Debug LLVM path on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          echo "LLVM Path: ${{ inputs.llvm_path }}"
       
       - uses: actions/cache@v3
         with:

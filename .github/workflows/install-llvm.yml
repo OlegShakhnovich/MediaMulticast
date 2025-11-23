@@ -32,10 +32,9 @@ jobs:
         if: ${{ inputs.runner == 'macos-latest' }}
         shell: bash
         run: |
-          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-Linux-ARM64.tar.xz
-          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-ARM64.tar.xz
-          mv LLVM-${{ inputs.llvm_version }}-Linux-ARM64 llvm
-          chmod +x llvm/bin/*
+          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
+          tar -xf LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
+          mv LLVM-${{ inputs.llvm_version }}-macOS-ARM64 llvm
           echo "$PWD/llvm/bin" >> $GITHUB_PATH
 
       - name: Install LLVM on Windows
@@ -77,6 +76,5 @@ jobs:
         if: ${{ inputs.runner == 'windows-latest' }}
         shell: pwsh
         run: |
-          echo "llvm_path=C:\LLVM\bin" >> $env:GITHUB_OUTPUT
-
+          "llvm_path=C:/LLVM/bin" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           
