@@ -32,11 +32,10 @@ jobs:
         if: ${{ inputs.runner == 'macos-latest' }}
         shell: bash
         run: |
-          brew update
-          brew install llvm@21 clang-tidy
-          brew pin llvm@21
-          echo "$(brew --prefix llvm@21)/bin" >> $GITHUB_PATH
-          echo "$(brew --prefix clang-tidy)/bin" >> $GITHUB_PATH
+          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-Linux-ARM64.tar.xz
+          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-ARM64.tar.xz
+          mv LLVM-${{ inputs.llvm_version }}-Linux-ARM64 llvm
+          echo "$PWD/llvm/bin" >> $GITHUB_PATH
 
       - name: Install LLVM on Windows
         if: ${{ inputs.runner == 'windows-latest' }}
@@ -69,8 +68,7 @@ jobs:
         id: export-path-macos
         if: ${{ inputs.runner == 'macos-latest' }}
         shell: bash
-        run: |
-          echo "llvm_path=$(brew --prefix llvm@21)/bin" >> $GITHUB_OUTPUT
+        run: |      
           
       - name: Export final LLVM path on Windows
         id: export-path-windows
