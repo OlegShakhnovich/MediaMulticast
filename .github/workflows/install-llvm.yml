@@ -9,6 +9,10 @@ on:
       llvm_version:
         required: true
         type: string
+    outputs:
+      llvm-bin-path:
+        description: "Path to LLVM binaries"
+        value: ${{ jobs.install.outputs.llvm-bin-path }}
 
 jobs:
   install:
