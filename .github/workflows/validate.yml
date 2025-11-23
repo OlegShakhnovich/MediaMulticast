@@ -1,0 +1,111 @@
+name: Validate + Build + Test
+
+on:
+  push:
+    branches: ["develop"]
+  pull_request:
+    branches: ["develop"]
+
+env:
+  LLVM_VERSION: "21.1.6"
+
+jobs:
+
+  install-linux:
+    uses: ./.github/workflows/install-llvm.yml
+    with:
+      runner: ubuntu-latest
+      llvm_version: ${{ env.LLVM_VERSION }}
+
+  install-macos:
+    uses: ./.github/workflows/install-llvm.yml
+    with:
+      runner: macos-latest
+      llvm_version: ${{ env.LLVM_VERSION }}
+
+  install-windows:
+    uses: ./.github/workflows/install-llvm.yml
+    with:
+      runner: windows-latest
+      llvm_version: ${{ env.LLVM_VERSION }}
+
+  tidy-src-linux:
+    needs: install-linux
+    uses: ./.github/workflows/tidy-src.yml
+    with:
+      runner: ubuntu-latest
+      llvm_path: ${{ needs.install-linux.outputs.llvm-bin-path }}
+
+  tidy-src-macos:
+    needs: install-macos
+    uses: ./.github/workflows/tidy-src.yml
+    with:
+      runner: macos-latest
+      llvm_path: ${{ needs.install-macos.outputs.llvm-bin-path }}
+
+  tidy-src-windows:
+    needs: install-windows
+    uses: ./.github/workflows/tidy-src.yml
+    with:
+      runner: windows-latest
+      llvm_path: ${{ needs.install-windows.outputs.llvm-bin-path }}
+
+  tidy-tests-linux:
+    needs: install-linux
+    uses: ./.github/workflows/tidy-tests.yml
+    with:
+      runner: ubuntu-latest
+      llvm_path: ${{ needs.install-linux.outputs.llvm-bin-path }}
+
+  tidy-tests-macos:
+    needs: install-macos
+    uses: ./.github/workflows/tidy-tests.yml
+    with:
+      runner: macos-latest
+      llvm_path: ${{ needs.install-macos.outputs.llvm-bin-path }}
+
+  tidy-tests-windows:
+    needs: install-windows
+    uses: ./.github/workflows/tidy-tests.yml
+    with:
+      runner: windows-latest
+      llvm_path: ${{ needs.install-windows.outputs.llvm-bin-path }}
+
+  build-linux:
+    needs: [tidy-src-linux, tidy-tests-linux]
+    uses: ./.github/workflows/build.yml
+    with:
+      runner: ubuntu-latest
+      llvm_path: ${{ needs.install-linux.outputs.llvm-bin-path }}
+
+  build-macos:
+    needs: [tidy-tests-macos, tidy-src-macos]
+    uses: ./.github/workflows/build.yml
+    with:
+      runner: macos-latest
+      llvm_path: ${{ needs.install-macos.outputs.llvm-bin-path }}
+
+  build-windows:
+    needs: [tidy-tests-windows, tidy-src-windows]
+    uses: ./.github/workflows/build.yml
+    with:
+      runner: windows-latest
+      llvm_path: ${{ needs.install-windows.outputs.llvm-bin-path }}
+
+  test-linux:
+    needs: [build-linux]
+    uses: ./.github/workflows/test.yml
+    with:
+      runner: ubuntu-latest
+
+  test-macos:
+    needs: [build-macos]
+    uses: ./.github/workflows/test.yml
+    with:
+      runner: macos-latest
+
+  test-windows:
+    needs: [build-windows]
+    uses: ./.github/workflows/test.yml
+    with:
+      runner: windows-latest

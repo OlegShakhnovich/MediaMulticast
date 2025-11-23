@@ -1,0 +1,56 @@
+name: Build (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      llvm_path:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add LLVM to PATH
+        run: echo "${{ inputs.llvm_path }}" >> $GITHUB_PATH
+        
+      - uses: actions/cache@v3
+        with:
+          path: build_ninja
+          key: ${{ inputs.runner }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
+
+      - name: Configure build (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          cmake -S . -B build_ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=clang \
+          -DCMAKE_CXX_COMPILER=clang++
+
+
+      - name: Configure build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake -S . -B build_ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=clang-cl \
+            -DCMAKE_CXX_COMPILER=clang-cl
+
+      - name: Build targets
+        run: |
+          cmake --build build_ninja --target udp_streaming_lib --parallel
+          cmake --build build_ninja --target udp_streamer --parallel
+          cmake --build build_ninja --target tests --parallel || true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build_ninja-${{ inputs.runner }}
+          path: build_ninja

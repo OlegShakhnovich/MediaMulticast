@@ -1,0 +1,75 @@
+name: Install LLVM (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      llvm_version:
+        required: true
+        type: string
+
+jobs:
+  install:
+    runs-on: ${{ inputs.runner }}
+    outputs:
+      llvm-bin-path: ${{ steps.export-path-linux.outputs.llvm_path || steps.export-path-macos.outputs.llvm_path || steps.export-path-windows.outputs.llvm_path }}
+
+    steps:
+      - name: Install LLVM on Linux
+        if: ${{ inputs.runner == 'ubuntu-latest' }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget xz-utils
+
+          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+          tar -xf clang+llvm-${{ inputs.llvm_version }}-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+          mv clang+llvm-${{ inputs.llvm_version }}-x86_64-linux-gnu-ubuntu-22.04 llvm
+          echo "$PWD/llvm/bin" >> $GITHUB_PATH
+
+      - name: Install LLVM on macOS
+        if: ${{ inputs.runner == 'macos-latest' }}
+        shell: bash
+        run: |
+          brew install llvm@21
+          brew pin llvm@21
+          echo "$(brew --prefix llvm@21)/bin" >> $GITHUB_PATH
+
+      - name: Install LLVM on Windows (official installer)
+        if: ${{ inputs.runner == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-win64.exe"
+          Invoke-WebRequest -Uri $url -OutFile llvm-installer.exe
+          Start-Process .\\llvm-installer.exe -ArgumentList "/S", "/D=C:\\LLVM" -Wait
+          "C:\\LLVM\\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
+          
+      - name: Check llvm
+        run: |
+          clang --version || true
+          clang-format --version || true
+          clang-tidy --version || true
+          
+      - name: Export final LLVM path on Linux
+        id: export-path-linux
+        if: ${{ inputs.runner == 'ubuntu-latest' }}
+        shell: bash
+        run: |
+          echo "llvm_path=$PWD/llvm/bin" >> $GITHUB_OUTPUT
+          
+      - name: Export final LLVM path on macOS
+        id: export-path-macos
+        if: ${{ inputs.runner == 'macos-latest' }}
+        shell: bash
+        run: |
+          echo "llvm_path=$(brew --prefix llvm@21)/bin" >> $GITHUB_OUTPUT
+          
+      - name: Export final LLVM path on Windows
+        id: export-path-windows
+        if: ${{ inputs.runner == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          echo "llvm_path=C:\\LLVM\\bin" >> $GITHUB_OUTPUT
+          

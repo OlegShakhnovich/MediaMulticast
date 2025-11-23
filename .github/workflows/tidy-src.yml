@@ -1,0 +1,70 @@
+name: Tidy-src (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      llvm_path:
+        required: true
+        type: string
+
+jobs:
+  tidy-src:
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add LLVM to PATH
+        run: echo "${{ inputs.llvm_path }}" >> $GITHUB_PATH
+      
+      - uses: actions/cache@v3
+        with:
+          path: build_tidy
+          key: ${{ inputs.runner }}-tidy-src-${{ hashFiles('src/**/*.cpp','src/**/*.cc','src/**/*.h','src/**/*.hpp','include/**/*.h','include/**/*.hpp') }}
+          
+      - name: Generate compile_commands.json (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          cmake -G Ninja -S . -B build_tidy \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_CXX_STANDARD=20 \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++
+      
+      - name: Generate compile_commands.json (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake -G Ninja -S . -B build_tidy `
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
+            -DCMAKE_CXX_STANDARD=20 `
+            -DCMAKE_C_COMPILER=clang-cl `
+            -DCMAKE_CXX_COMPILER=clang-cl
+
+      - name: Upload compile_commands.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: compile_commands-src-${{ inputs.runner }}
+          path: build_tidy/compile_commands.json
+
+      - name: Run clang-tidy on src/include (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          files=$(find src include -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
+          for f in $files; do
+            clang-tidy -config-file=.clang-tidy -p build_tidy "$f"
+          done
+
+          
+      - name: Run clang-tidy on src/include (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |      
+          $files = Get-ChildItem -Recurse src,include -Include *.cpp,*.cc,*.h,*.hpp
+          foreach ($f in $files) {
+            clang-tidy -config-file=.clang-tidy -p build_tidy $f.FullName
+          }
