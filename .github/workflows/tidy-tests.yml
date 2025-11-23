@@ -67,5 +67,5 @@ jobs:
           $config = Join-Path $PWD "tests/.clang-tidy"    
           $files = Get-ChildItem -Recurse tests -Include *.cpp,*.cc,*.h,*.hpp
           foreach ($f in $files) {
-            clang-tidy -config-file=$config -p build_tidy_tests $f.FullName
+            & clang-tidy -config-file "$config" -p build_tidy_tests $f.FullName
           }
