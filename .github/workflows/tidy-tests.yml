@@ -23,7 +23,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: build_tidy_tests
-          key: ${{ inputs.runner }}-tidy-tests-${{ hashFiles('tests/**/*.cpp', 'tests/**/*.cc', 'tests/**/*.h', 'tests/**/*.hpp') }}
+          key: ${{ inputs.runner }}-tidy-tests-${{ hashFiles('./tests/**/*.cpp', './tests/**/*.cc', './tests/**/*.h', './tests/**/*.hpp') }}
             
       - name: Generate compile_commands.json (Linux/macOS)
         if: runner.os != 'Windows'
@@ -63,8 +63,9 @@ jobs:
       - name: Run clang-tidy on tests (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: |      
+        run: |  
+          $config = Join-Path $PWD "tests/.clang-tidy"    
           $files = Get-ChildItem -Recurse tests -Include *.cpp,*.cc,*.h,*.hpp
           foreach ($f in $files) {
-            clang-tidy -config-file=tests/.clang-tidy -p build_tidy_tests $f.FullName
+            clang-tidy -config-file=$config -p build_tidy_tests $f.FullName
           }
