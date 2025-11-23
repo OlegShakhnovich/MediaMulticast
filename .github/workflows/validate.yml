@@ -5,9 +5,16 @@ on:
     branches: ["develop"]
   pull_request:
     branches: ["develop"]
+  workflow_dispatch:
+    inputs:
+      llvm_version:
+        description: 'LLVM Version'
+        required: true
+        default: '21.1.6'
+        type: string
 
 env:
-  LLVM_VERSION: "21.1.6"
+  LLVM_VERSION: ${{ github.event.inputs.llvm_version || '21.1.6' }}
 
 jobs:
 
