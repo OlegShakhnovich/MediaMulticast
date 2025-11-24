@@ -65,42 +65,74 @@ runs:
           exit 1
         fi
 
+
     - name: Verify LLVM version and priority (Windows)
       if: ${{ inputs.runner == 'windows-latest' }}
       shell: pwsh
       run: |
         Write-Host "=== Verifying LLVM ${{ inputs.llvm_version }} is used ==="
-        
+    
         # Check which clang-tidy is being used
         Write-Host "=== Which clang-tidy ==="
         Get-Command clang-tidy -ErrorAction SilentlyContinue
-        
+    
         # Verify version matches what we want
         Write-Host "=== Clang-tidy version ==="
-        $versionOutput = clang-tidy --version 2>&1
+        $versionOutput = clang-tidy --version 2>&1 | Out-String
         Write-Host $versionOutput
-        
-        # Extract version from output and verify
+    
+        # Extract version from output using multiple methods
+        $INSTALLED_VERSION = "unknown"
+    
+        # Method 1: Try to extract version using regex
         if ($versionOutput -match 'LLVM version\s+([0-9]+\.[0-9]+\.[0-9]+)') {
-          $INSTALLED_VERSION = $Matches[1]
-        } elseif ($versionOutput -match '([0-9]+\.[0-9]+\.[0-9]+)') {
-          $INSTALLED_VERSION = $Matches[1]
-        } else {
-          $INSTALLED_VERSION = "unknown"
-          Write-Host "WARNING: Could not extract version from output"
+            $INSTALLED_VERSION = $Matches[1]
+            Write-Host "Found version via regex method 1: $INSTALLED_VERSION"
+        } 
+        elseif ($versionOutput -match 'version\s+([0-9]+\.[0-9]+\.[0-9]+)') {
+            $INSTALLED_VERSION = $Matches[1]
+            Write-Host "Found version via regex method 2: $INSTALLED_VERSION"
         }
-        
+        elseif ($versionOutput -match '([0-9]+\.[0-9]+\.[0-9]+)') {
+            $INSTALLED_VERSION = $Matches[1]
+            Write-Host "Found version via regex method 3: $INSTALLED_VERSION"
+        }
+    
+        # Method 2: If regex failed, try splitting the output
+        if ($INSTALLED_VERSION -eq "unknown") {
+            Write-Host "Trying split method..."
+            $lines = $versionOutput -split "`n"
+            foreach ($line in $lines) {
+                if ($line -match '([0-9]+\.[0-9]+\.[0-9]+)') {
+                    $INSTALLED_VERSION = $Matches[1]
+                    Write-Host "Found version via split method: $INSTALLED_VERSION"
+                    break
+                }
+            }
+        }
+    
+        # Method 3: Try using clang instead of clang-tidy
+        if ($INSTALLED_VERSION -eq "unknown") {
+            Write-Host "Trying clang --version method..."
+            $clangOutput = clang --version 2>&1 | Out-String
+            if ($clangOutput -match '([0-9]+\.[0-9]+\.[0-9]+)') {
+                $INSTALLED_VERSION = $Matches[1]
+                Write-Host "Found version via clang: $INSTALLED_VERSION"
+            }
+        }
+    
         $EXPECTED_VERSION = "${{ inputs.llvm_version }}"
-        
+    
         Write-Host "Installed version: $INSTALLED_VERSION"
         Write-Host "Expected version: $EXPECTED_VERSION"
-        
+    
         if ($INSTALLED_VERSION -ne $EXPECTED_VERSION -and $INSTALLED_VERSION -ne "unknown") {
-          Write-Error "ERROR: Version mismatch! Expected $EXPECTED_VERSION but found $INSTALLED_VERSION"
-          exit 1
+            Write-Error "ERROR: Version mismatch! Expected $EXPECTED_VERSION but found $INSTALLED_VERSION"
+            exit 1
         } elseif ($INSTALLED_VERSION -eq "unknown") {
-          Write-Host "WARNING: Could not verify version, but continuing..."
+            Write-Host "WARNING: Could not verify version, but continuing..."
         }
+
 
     - name: Check LLVM tools (Linux/macOS)
       if: ${{ inputs.runner != 'windows-latest' }}
