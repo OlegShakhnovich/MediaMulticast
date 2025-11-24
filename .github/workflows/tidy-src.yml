@@ -6,7 +6,7 @@ on:
       runner:
         required: true
         type: string
-      llvm_path:
+      llvm_version:
         required: true
         type: string
 
@@ -16,45 +16,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Add LLVM to PATH
-        run: echo "${{ inputs.llvm_path }}" >> $GITHUB_PATH
-
-      - name: Inspect LLVM Path and Installation
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          echo "LLVM Path from inputs: '${{ inputs.llvm_path }}'"
-          echo "=== Checking directory existence and contents ==="
-          if [ -d "${{ inputs.llvm_path }}" ]; then
-            echo "Directory exists. Contents:"
-            ls -la "${{ inputs.llvm_path }}/" | head -20
-          else
-            echo "ERROR: Directory does not exist!"
-          fi
-          echo "=== Checking which clang-tidy is being used ==="
-          which clang-tidy || echo "clang-tidy not found in PATH"
-          echo "=== Actual clang-tidy version ==="
-          clang-tidy --version || echo "Cannot run clang-tidy"
-
-      - name: Inspect LLVM Path (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Write-Host "LLVM Path from inputs: '${{ inputs.llvm_path }}'"
-          Write-Host "=== Checking directory existence and contents ==="
-          if (Test-Path "${{ inputs.llvm_path }}") {
-            Write-Host "Directory exists. Contents:"
-            Get-ChildItem "${{ inputs.llvm_path }}\" | Select-Object -First 20
-          } else {
-            Write-Host "ERROR: Directory does not exist!"
-          }
-          Write-Host "=== Checking which clang-tidy is being used ==="
-          Get-Command clang-tidy -ErrorAction SilentlyContinue
-          Write-Host "=== Actual clang-tidy version ==="
-          clang-tidy --version 2>&1 | Out-Host
-
-
+  
+      - name: Setup LLVM ${{ inputs.llvm_version }}
+        uses: ./.github/actions/setup-llvm
+        with:
+          runner: ${{ inputs.runner }}
+          llvm_version: ${{ inputs.llvm_version }}
 
       - name: Check llvm
         run: |
@@ -70,14 +37,12 @@ jobs:
           Get-Command clang-tidy
           Write-Host "Clang-tidy version:"
           clang-tidy --version
-          Write-Host "LLVM Path from inputs: ${{ inputs.llvm_path }}"
 
 
       - name: Debug LLVM path on Windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          echo "LLVM Path: ${{ inputs.llvm_path }}"
       
       - uses: actions/cache@v3
         with:
@@ -100,8 +65,8 @@ jobs:
           cmake -G Ninja -S . -B build_tidy `
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
             -DCMAKE_CXX_STANDARD=20 `
-            -DCMAKE_C_COMPILER="${{ inputs.llvm_path }}/clang.exe" `
-            -DCMAKE_CXX_COMPILER="${{ inputs.llvm_path }}/clang++.exe"
+            -DCMAKE_C_COMPILER=clang .exe `
+            -DCMAKE_CXX_COMPILER=clang++.exe
 
       - name: Upload compile_commands.json
         uses: actions/upload-artifact@v4

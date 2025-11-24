@@ -6,9 +6,6 @@ on:
       llvm_version:
         required: true
         type: string
-      llvm_path:
-        required: true
-        type: string
             
 permissions:
   contents: write
@@ -21,9 +18,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
-      - name: Add LLVM to PATH
-        run: echo "${{ inputs.llvm_path }}" >> $GITHUB_PATH
+
+
+      - name: Setup LLVM ${{ inputs.llvm_version }}
+        uses: ./.github/actions/setup-llvm
+        with:
+          runner: ${{ inputs.runner }}
+          llvm_version: ${{ inputs.llvm_version }}
 
 
       - name: Check formatting
@@ -37,6 +38,7 @@ jobs:
             "$CF" --dry-run --Werror -style=file "$f" || rc=1
           done
           echo "rc=$rc" >> $GITHUB_OUTPUT
+    
           
       - name: Apply format and push        
         if: steps.fmt.outputs.rc == '1'

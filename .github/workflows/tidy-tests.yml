@@ -6,7 +6,7 @@ on:
       runner:
         required: true
         type: string
-      llvm_path:
+      llvm_version:
         required: true
         type: string
 
@@ -16,15 +16,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+  
 
-      - name: Add LLVM to PATH
-        run: echo "${{ inputs.llvm_path }}" >> $GITHUB_PATH
+      - name: Setup LLVM ${{ inputs.llvm_version }}
+        uses: ./.github/actions/setup-llvm
+        with:
+          runner: ${{ inputs.runner }}
+          llvm_version: ${{ inputs.llvm_version }}
         
+
       - uses: actions/cache@v3
         with:
           path: build_tidy_tests
           key: ${{ inputs.runner }}-tidy-tests-${{ hashFiles('./tests/**/*.cpp', './tests/**/*.cc', './tests/**/*.h', './tests/**/*.hpp') }}
-            
+        
+          
       - name: Generate compile_commands.json (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
@@ -34,6 +40,7 @@ jobs:
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++
       
+
       - name: Generate compile_commands.json (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -41,14 +48,16 @@ jobs:
           cmake -G Ninja -S . -B build_tidy_tests `
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
             -DCMAKE_CXX_STANDARD=20 `
-            -DCMAKE_C_COMPILER="${{ inputs.llvm_path }}/clang++.exe" `
-            -DCMAKE_CXX_COMPILER="${{ inputs.llvm_path }}/clang++.exe"
+            -DCMAKE_C_COMPILER=clang.exe `
+            -DCMAKE_CXX_COMPILER=clang++.exe
+
 
       - name: Upload compile_commands.json
         uses: actions/upload-artifact@v4
         with:
           name: compile_commands-tests-${{ inputs.runner }}
           path: build_tidy_tests/compile_commands.json
+
 
       - name: Run clang-tidy on tests (Linux/macOS)
         if: runner.os != 'Windows'

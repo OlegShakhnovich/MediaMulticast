@@ -8,86 +8,86 @@ on:
 
 jobs:
 
-  install-linux:
-    uses: ./.github/workflows/install-llvm.yml
+  setup-llvm-cache-linux:
+    uses: ./.github/workflows/setup-llvm-cache.yml
     with:
       runner: ubuntu-latest
       llvm_version: "21.1.6"
 
-  install-macos:
-    uses: ./.github/workflows/install-llvm.yml
+  setup-llvm-cache-macos:
+    uses: ./.github/workflows/setup-llvm-cache.yml
     with:
       runner: macos-latest
       llvm_version: "21.1.6"
 
-  install-windows:
-    uses: ./.github/workflows/install-llvm.yml
+  setup-llvm-cache-windows:
+    uses: ./.github/workflows/setup-llvm-cache.yml
     with:
       runner: windows-latest
       llvm_version: "21.1.6"
 
   tidy-src-linux:
-    needs: install-linux
+    needs: setup-llvm-cache-linux
     uses: ./.github/workflows/tidy-src.yml
     with:
       runner: ubuntu-latest
-      llvm_path: ${{ needs.install-linux.outputs.llvm-bin-path }}
+      llvm_version: "21.1.6"
 
   tidy-src-macos:
-    needs: install-macos
+    needs: setup-llvm-cache-macos
     uses: ./.github/workflows/tidy-src.yml
     with:
       runner: macos-latest
-      llvm_path: ${{ needs.install-macos.outputs.llvm-bin-path }}
+      llvm_version: "21.1.6"
 
   tidy-src-windows:
-    needs: install-windows
+    needs: setup-llvm-cache-windows
     uses: ./.github/workflows/tidy-src.yml
     with:
       runner: windows-latest
-      llvm_path: ${{ needs.install-windows.outputs.llvm-bin-path }}
+      llvm_version: "21.1.6"
 
   tidy-tests-linux:
-    needs: install-linux
+    needs: setup-llvm-cache-linux
     uses: ./.github/workflows/tidy-tests.yml
     with:
       runner: ubuntu-latest
-      llvm_path: ${{ needs.install-linux.outputs.llvm-bin-path }}
+      llvm_version: "21.1.6"
 
   tidy-tests-macos:
-    needs: install-macos
+    needs: setup-llvm-cache-macos
     uses: ./.github/workflows/tidy-tests.yml
     with:
       runner: macos-latest
-      llvm_path: ${{ needs.install-macos.outputs.llvm-bin-path }}
+      llvm_version: "21.1.6"
 
   tidy-tests-windows:
-    needs: install-windows
+    needs: setup-llvm-cache-windows
     uses: ./.github/workflows/tidy-tests.yml
     with:
       runner: windows-latest
-      llvm_path: ${{ needs.install-windows.outputs.llvm-bin-path }}
+      llvm_version: "21.1.6"
 
   build-linux:
     needs: [tidy-src-linux, tidy-tests-linux]
     uses: ./.github/workflows/build.yml
     with:
       runner: ubuntu-latest
-      llvm_path: ${{ needs.install-linux.outputs.llvm-bin-path }}
+      llvm_version: "21.1.6"
 
   build-macos:
     needs: [tidy-tests-macos, tidy-src-macos]
     uses: ./.github/workflows/build.yml
     with:
       runner: macos-latest
-      llvm_path: ${{ needs.install-macos.outputs.llvm-bin-path }}
+      llvm_version: "21.1.6"
 
   build-windows:
     needs: [tidy-tests-windows, tidy-src-windows]
     uses: ./.github/workflows/build.yml
     with:
       runner: windows-latest
-      llvm_path: ${{ needs.install-windows.outputs.llvm-bin-path }}
+      llvm_version: "21.1.6"
 
   test-linux:
     needs: [build-linux]

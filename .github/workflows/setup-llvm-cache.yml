@@ -1,0 +1,100 @@
+name: Setup LLVM Cache (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      llvm_version:
+        required: true
+        type: string
+
+jobs:
+  install:
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - name: Cache LLVM directory (Linux/macOS)
+        if: ${{ inputs.runner != 'windows-latest' }}
+        id: cache-llvm-unix
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/llvm
+          key: ${{ inputs.runner }}-llvm-${{ inputs.llvm_version }}
+          restore-keys: |
+            ${{ inputs.runner }}-llvm-
+
+      - name: Cache LLVM directory (Windows)
+        if: ${{ inputs.runner == 'windows-latest' }}
+        id: cache-llvm-windows
+        uses: actions/cache@v3
+        with:
+          path: C:\LLVM
+          key: ${{ inputs.runner }}-llvm-${{ inputs.llvm_version }}
+          restore-keys: |
+            ${{ inputs.runner }}-llvm-
+
+
+      - name: Download and extract LLVM on Linux
+        if: ${{ inputs.runner == 'ubuntu-latest' && steps.cache-llvm-unix.outputs.cache-hit != 'true' }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget xz-utils
+          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
+          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
+          mv LLVM-${{ inputs.llvm_version }}-Linux-X64 llvm
+
+      - name: Download and extract LLVM on macOS
+        if: ${{ inputs.runner == 'macos-latest' && steps.cache-llvm-unix.outputs.cache-hit != 'true' }}
+        shell: bash
+        run: |
+          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
+          tar -xf LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
+          mv LLVM-${{ inputs.llvm_version }}-macOS-ARM64 llvm
+          
+      - name: Download and extract LLVM on Windows
+        if: ${{ inputs.runner == 'windows-latest' && steps.cache-llvm-windows.outputs.cache-hit != 'true' }}
+        shell: pwsh
+        run: |
+          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-pc-windows-msvc.tar.xz"
+          $archive = "llvm.tar.xz"
+          Invoke-WebRequest -Uri $url -OutFile $archive
+          $dest = "C:\LLVM"
+          if (-Not (Test-Path $dest)) {
+            New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          }
+          tar -xf $archive -C $dest --strip-components=1
+
+      - name: Download LLVM archive for Windows
+        if: ${{ inputs.runner == 'windows-latest' && steps.cache-llvm-archives.outputs.cache-hit != 'true' }}
+        shell: pwsh
+        run: |
+          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-pc-windows-msvc.tar.xz"
+          Invoke-WebRequest -Uri $url -OutFile llvm-archive-windows.tar.xz
+
+
+      - name: Add LLVM to PATH on Linux/macOS
+        if: ${{ inputs.runner != 'windows-latest' }}
+        run: |
+          echo "${{ github.workspace }}/llvm/bin" >> $GITHUB_PATH
+
+      - name: Add LLVM to PATH on Windows
+        if: ${{ inputs.runner == 'windows-latest' }}
+        run: |
+          echo "C:\LLVM\bin" >> $GITHUB_PATH
+
+
+      - name: Verify installation
+        run: |
+          echo "=== Checking clang version ==="
+          clang --version || echo "clang not found"
+          echo "=== Checking clang-tidy version ==="
+          clang-tidy --version || echo "clang-tidy not found"
+          echo "=== Checking clang-format version ==="
+          clang-format --version || echo "clang-format not found"
+          echo "=== Cache status ==="
+          echo "LLVM directory cache hit: ${{ steps.cache-llvm-unix.outputs.cache-hit || steps.cache-llvm-windows.outputs.cache-hit }}" || echo "No cache"
+
+          
