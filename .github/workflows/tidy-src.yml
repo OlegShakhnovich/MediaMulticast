@@ -62,17 +62,36 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          $llvmBinPath = "C:\LLVM\bin"
           cmake -G Ninja -S . -B build_tidy `
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
             -DCMAKE_CXX_STANDARD=20 `
-            -DCMAKE_C_COMPILER=clang.exe `
-            -DCMAKE_CXX_COMPILER=clang++.exe
+            -DCMAKE_C_COMPILER="$llvmBinPath\clang.exe" `
+            -DCMAKE_CXX_COMPILER="$llvmBinPath\clang++.exe" '
+            -DCMAKE_C_FLAGS="-target x86_64-pc-windows-msvc" `
+            -DCMAKE_CXX_FLAGS="-target x86_64-pc-windows-msvc -stdlib=libc++"
+
 
       - name: Upload compile_commands.json
         uses: actions/upload-artifact@v4
         with:
           name: compile_commands-src-${{ inputs.runner }}
           path: build_tidy/compile_commands.json
+
+
+      - name: Verify compiler selection (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "=== Checking actual compiler ==="
+          Write-Host "Clang version:"
+          clang --version
+          Write-Host "Clang++ version:"
+          clang++ --version
+          Write-Host "CMake C compiler:"
+          cmake -B test_build -S . -N | findstr "C_COMPILER"
+          Write-Host "CMake CXX compiler:"
+          cmake -B test_build -S . -N | findstr "CXX_COMPILER"
 
       - name: Run clang-tidy on src/include (Linux/macOS)
         if: runner.os != 'Windows'
