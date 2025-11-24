@@ -85,7 +85,7 @@ runs:
         $INSTALLED_VERSION = "unknown"
     
         # Method 1: Try to extract version using regex
-        $versionOutput -match 'LLVM version\s+([0-9]+\.[0-9]+\.[0-9]+)')
+        $versionOutput -match 'LLVM version\s+([0-9]+\.[0-9]+\.[0-9]+)'
         $INSTALLED_VERSION = $Matches[1]    
         $EXPECTED_VERSION = "${{ inputs.llvm_version }}"
     
