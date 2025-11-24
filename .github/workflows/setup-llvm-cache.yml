@@ -17,6 +17,10 @@ jobs:
     runs-on: ${{ inputs.runner }}
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
       - name: Cache LLVM
         uses: ./.github/actions/cache-llvm
         id: cache-llvm
