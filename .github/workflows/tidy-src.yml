@@ -89,9 +89,9 @@ jobs:
           Write-Host "Clang++ version:"
           clang++ --version
           Write-Host "CMake C compiler:"
-          cmake -B test_build -S . -N | findstr "C_COMPILER"
-          Write-Host "CMake CXX compiler:"
-          cmake -B test_build -S . -N | findstr "CXX_COMPILER"
+          cmake -B test_build -S . -N -DCMAKE_C_COMPILER="clang" -DCMAKE_CXX_COMPILER="clang++"
+          Write-Host "=== CMake completed successfully ==="
+
 
       - name: Run clang-tidy on src/include (Linux/macOS)
         if: runner.os != 'Windows'
