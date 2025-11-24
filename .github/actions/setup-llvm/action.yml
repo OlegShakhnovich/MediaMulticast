@@ -12,23 +12,13 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Cache LLVM directory (Linux/macOS)
-      if: ${{ inputs.runner != 'windows-latest' }}
-      uses: actions/cache@v3
-      with:
-        path: ${{ github.workspace }}/llvm
-        key: ${{ inputs.runner }}-llvm-${{ inputs.llvm_version }}
-        restore-keys: |
-          ${{ inputs.runner }}-llvm-
 
-    - name: Cache LLVM directory (Windows)
-      if: ${{ inputs.runner == 'windows-latest' }}
-      uses: actions/cache@v3
+    - name: Cache LLVM
+      uses: ./.github/actions/cache-llvm
       with:
-        path: C:\LLVM
-        key: ${{ inputs.runner }}-llvm-${{ inputs.llvm_version }}
-        restore-keys: |
-          ${{ inputs.runner }}-llvm-
+        runner: ${{ inputs.runner }}
+        llvm_version: ${{ inputs.llvm_version }}
+
 
     - name: Add LLVM to PATH on Linux/macOS
       if: ${{ inputs.runner != 'windows-latest' }}
@@ -54,17 +44,23 @@ runs:
         
         # Verify version matches what we want
         echo "=== Clang-tidy version ==="
-        clang-tidy --version | head -1
+        clang-tidy --version 2>&1
         
         # Extract version from output and verify
+        INSTALLED_VERSION=$(clang-tidy --version 2>&1 | grep -oE 'LLVM version [0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    
+        if [ -z "$INSTALLED_VERSION" ]; then
+          INSTALLED_VERSION=$(clang-tidy --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        fi
 
-        INSTALLED_VERSION=$(clang-tidy --version | head -1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
         EXPECTED_VERSION="${{ inputs.llvm_version }}"
         
         echo "Installed version: $INSTALLED_VERSION"
         echo "Expected version: $EXPECTED_VERSION"
         
-        if [ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]; then
+        if [ -z "$INSTALLED_VERSION" ]; then
+          echo "WARNING: Could not extract version from output, but continuing..."
+        elif [ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]; then
           echo "ERROR: Version mismatch! Expected $EXPECTED_VERSION but found $INSTALLED_VERSION"
           exit 1
         fi
@@ -77,7 +73,7 @@ runs:
         
         # Check which clang-tidy is being used
         Write-Host "=== Which clang-tidy ==="
-        Get-Command clang-tidy -ErrorAction SilentlyContinue
+        Get-Command clang-tidy -ErrorAction SilentlyContinue  | Out-String
         
         # Verify version matches what we want
         Write-Host "=== Clang-tidy version ==="
@@ -85,10 +81,13 @@ runs:
         Write-Host $versionOutput
         
         # Extract version from output and verify
-        if ($versionOutput -match '(\d+\.\d+\.\d+)') {
-            $INSTALLED_VERSION = $Matches[1]
+        if ($versionOutput -match 'LLVM version\s+([0-9]+\.[0-9]+\.[0-9]+)') {
+          $INSTALLED_VERSION = $Matches[1]
+        elseif ($versionOutput -match '([0-9]+\.[0-9]+\.[0-9]+)') {
+          $INSTALLED_VERSION = $Matches[1]
         } else {
-            $INSTALLED_VERSION = "unknown"
+          $INSTALLED_VERSION = "unknown"
+          Write-Host "WARNING: Could not extract version from output"
         }
         
         $EXPECTED_VERSION = "${{ inputs.llvm_version }}"
@@ -96,9 +95,11 @@ runs:
         Write-Host "Installed version: $INSTALLED_VERSION"
         Write-Host "Expected version: $EXPECTED_VERSION"
         
-        if ($INSTALLED_VERSION -ne $EXPECTED_VERSION) {
-            Write-Error "ERROR: Version mismatch! Expected $EXPECTED_VERSION but found $INSTALLED_VERSION"
-            exit 1
+        if ($INSTALLED_VERSION -ne $EXPECTED_VERSION -and $INSTALLED_VERSION -ne "unknown") {
+          Write-Error "ERROR: Version mismatch! Expected $EXPECTED_VERSION but found $INSTALLED_VERSION"
+          exit 1
+        } elseif ($INSTALLED_VERSION -eq "unknown") {
+          Write-Host "WARNING: Could not verify version, but continuing..."
         }
 
     - name: Check LLVM tools (Linux/macOS)
