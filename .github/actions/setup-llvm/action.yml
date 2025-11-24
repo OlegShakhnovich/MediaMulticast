@@ -73,7 +73,7 @@ runs:
         
         # Check which clang-tidy is being used
         Write-Host "=== Which clang-tidy ==="
-        Get-Command clang-tidy -ErrorAction SilentlyContinue  | Out-String
+        Get-Command clang-tidy -ErrorAction SilentlyContinue
         
         # Verify version matches what we want
         Write-Host "=== Clang-tidy version ==="
@@ -83,7 +83,7 @@ runs:
         # Extract version from output and verify
         if ($versionOutput -match 'LLVM version\s+([0-9]+\.[0-9]+\.[0-9]+)') {
           $INSTALLED_VERSION = $Matches[1]
-        elseif ($versionOutput -match '([0-9]+\.[0-9]+\.[0-9]+)') {
+        } elseif ($versionOutput -match '([0-9]+\.[0-9]+\.[0-9]+)') {
           $INSTALLED_VERSION = $Matches[1]
         } else {
           $INSTALLED_VERSION = "unknown"
