@@ -29,7 +29,7 @@ public:
     using Sink = std::function<void(std::string)>;
 
     Logger() noexcept
-        : sink([](const std::string& msg) noexcept -> void {
+        : sink([](const std::string& msg) -> void {
               std::cout << msg;
           }) {}
 
