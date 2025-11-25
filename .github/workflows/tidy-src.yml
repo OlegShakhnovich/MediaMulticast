@@ -50,7 +50,7 @@ jobs:
           key: ${{ inputs.runner }}-tidy-src-${{ hashFiles('./src/**/*.cpp', './src/**/*.cc', './src/**/*.h', './src/**/*.hpp', './include/**/*.h', './include/**/*.hpp') }}
 
 
-      - name: Generate compile_commands.json (ÌacOS)
+      - name: Generate compile_commands.json (MacOS)
         if: runner.os == 'macOS'
         run: |
           cmake -G Ninja -S . -B build_tidy \
