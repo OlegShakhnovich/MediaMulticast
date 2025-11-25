@@ -70,7 +70,7 @@ jobs:
           -DCMAKE_AR="$GITHUB_WORKSPACE/llvm/bin/llvm-ar" \
           -DCMAKE_RANLIB="$GITHUB_WORKSPACE/llvm/bin/llvm-ranlib" \
           \
-          -DCMAKE_C_FLAGS=" -nostdinc++ -nostdinc -isystem $GITHUB_WORKSPACE/llvm/include/c/v1 " \
+          -DCMAKE_C_FLAGS=""  \
           -DCMAKE_CXX_FLAGS=" -nostdinc++ -nostdinc -isystem $GITHUB_WORKSPACE/llvm/include/c++/v1 " \
           \
           -DCMAKE_EXE_LINKER_FLAGS=" -L$GITHUB_WORKSPACE/llvm/lib -lc++ -lc++abi -lunwind " \
