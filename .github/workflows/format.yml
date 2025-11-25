@@ -23,7 +23,7 @@ jobs:
       - name: Setup LLVM ${{ inputs.llvm_version }}
         uses: ./.github/actions/setup-llvm
         with:
-          runner: ${{ inputs.runner }}
+          runner: ubuntu-latest
           llvm_version: ${{ inputs.llvm_version }}
           is-fail-on-cache-miss: 'true'
 
@@ -36,7 +36,7 @@ jobs:
           CF="${{ inputs.llvm_path }}/clang-format"
           files=$(find src include tests -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' \) -print)
           for f in $files; do
-            "$CF" --dry-run --Werror -style=file "$f" || rc=1
+            clang-format --dry-run --Werror -style=file "$f" || rc=1
           done
           echo "rc=$rc" >> $GITHUB_OUTPUT
     
