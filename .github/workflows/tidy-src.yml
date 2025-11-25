@@ -49,6 +49,11 @@ jobs:
           path: build_tidy
           key: ${{ inputs.runner }}-tidy-src-${{ hashFiles('./src/**/*.cpp', './src/**/*.cc', './src/**/*.h', './src/**/*.hpp', './include/**/*.h', './include/**/*.hpp') }}
 
+      - name: Verify linker availability (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          clang -fuse-ld=lld -o my_program my_program.c
+
 
       - name: Generate compile_commands.json (MacOS)
         if: runner.os == 'macOS'
@@ -59,8 +64,8 @@ jobs:
             -DCMAKE_CXX_EXTENSIONS=OFF \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_C_FLAGS="--sysroot=/ -isystem $GITHUB_WORKSPACE/llvm/include/c++/v1" \
-            -DCMAKE_CXX_FLAGS="--sysroot=/ -isystem $GITHUB_WORKSPACE/llvm/include/c++/v1"
+            -DCMAKE_C_FLAGS="-isystem $GITHUB_WORKSPACE/llvm/include/c++/v1" \
+            -DCMAKE_CXX_FLAGS="-isystem $GITHUB_WORKSPACE/llvm/include/c++/v1"
             
       - name: Generate compile_commands.json (Linux)
         if: runner.os == 'Linux'
