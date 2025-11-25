@@ -42,6 +42,7 @@ jobs:
           
       - name: Apply format and push        
         if: steps.fmt.outputs.rc == '1'
+        shell: bash
         run: |
           # skip for forks
           if [ -n "${GITHUB_HEAD_REF:-}" ]; then
