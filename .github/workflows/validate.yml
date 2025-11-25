@@ -30,7 +30,6 @@ jobs:
     needs: setup-llvm-cache-linux
     uses: ./.github/workflows/format.yml
     with:
-      runner: ubuntu-latest
       llvm_version: "21.1.6"
 
   tidy-src-linux:
