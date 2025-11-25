@@ -27,6 +27,7 @@ jobs:
         with:
           runner: ${{ inputs.runner }}
           llvm_version: ${{ inputs.llvm_version }}
+          is_lookup-only: 'true'
 
       - name: Download and extract LLVM on Linux
         if: ${{ inputs.runner == 'ubuntu-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}

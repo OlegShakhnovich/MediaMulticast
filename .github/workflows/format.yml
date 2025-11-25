@@ -25,6 +25,7 @@ jobs:
         with:
           runner: ${{ inputs.runner }}
           llvm_version: ${{ inputs.llvm_version }}
+          is_save-only: 'true'
 
 
       - name: Check formatting
@@ -40,20 +41,20 @@ jobs:
           echo "rc=$rc" >> $GITHUB_OUTPUT
     
           
-      - name: Apply format and push        
-        if: steps.fmt.outputs.rc == '1'
-        run: |
-          # skip for forks
-          if [ -n "${GITHUB_HEAD_REF:-}" ]; then
-            echo "Fork PR — skipping auto-push"
-            exit 0
-          fi
-          files=$(find src include tests -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' \) -print)
-          for f in $files; do
-            "${CF}" -i -style=file "$f"
-          done
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "style: apply clang-format (21.1.6)"
-          git push
+#      - name: Apply format and push        
+#        if: steps.fmt.outputs.rc == '1'
+#        run: |
+#          # skip for forks
+#          if [ -n "${GITHUB_HEAD_REF:-}" ]; then
+#            echo "Fork PR — skipping auto-push"
+#            exit 0
+#          fi
+#          files=$(find src include tests -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' \) -print)
+#          for f in $files; do
+#            "${CF}" -i -style=file "$f"
+#          done
+#          git config user.name "github-actions[bot]"
+#          git config user.email "github-actions[bot]@users.noreply.github.com"
+#          git add .
+#          git commit -m "style: apply clang-format (21.1.6)"
+#          git push

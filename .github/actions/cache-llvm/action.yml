@@ -8,6 +8,14 @@ inputs:
   llvm_version:
     required: true
     description: 'The LLVM version to cache'
+  is_lookup-only:
+    required: false
+    description: 'Whether to only look up the cache without restoring it'
+    default: 'false'
+  is_save-only:
+    required: false
+    description: 'Whether to only save to the cache without looking it up'
+    default: 'false'
 
 outputs:
   cache-hit:
@@ -20,10 +28,12 @@ runs:
     - name: Cache LLVM directory (Linux/macOS)
       if: ${{ inputs.runner != 'windows-latest' }}
       id: cache-llvm-unix
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}/llvm
         key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
+        lookup-only: ${{ inputs.is_lookup-only }}
+        save-only: ${{ inputs.is_save-only }}
         restore-keys: |
           global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
           global-llvm-${{ inputs.llvm_version }}
