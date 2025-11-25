@@ -26,9 +26,9 @@ jobs:
       runner: windows-latest
       llvm_version: "21.1.6"
 
-  format-src-linux:
+  format-linux:
     needs: setup-llvm-cache-linux
-    uses: ./.github/workflows/tidy-src.yml
+    uses: ./.github/workflows/format.yml
     with:
       runner: ubuntu-latest
       llvm_version: "21.1.6"
@@ -76,21 +76,21 @@ jobs:
       llvm_version: "21.1.6"
 
   build-linux:
-    needs: [tidy-src-linux, tidy-tests-linux, format-src-linux]
+    needs: [tidy-src-linux, tidy-tests-linux, format-linux]
     uses: ./.github/workflows/build.yml
     with:
       runner: ubuntu-latest
       llvm_version: "21.1.6"
 
   build-macos:
-    needs: [tidy-tests-macos, tidy-src-macos, format-src-linux]
+    needs: [tidy-tests-macos, tidy-src-macos, format-linux]
     uses: ./.github/workflows/build.yml
     with:
       runner: macos-latest
       llvm_version: "21.1.6"
 
   build-windows:
-    needs: [tidy-tests-windows, tidy-src-windows, format-src-linux]
+    needs: [tidy-tests-windows, tidy-src-windows, format-linux]
     uses: ./.github/workflows/build.yml
     with:
       runner: windows-latest
