@@ -40,13 +40,24 @@ jobs:
           echo "rc=$rc" >> $GITHUB_OUTPUT
     
           
-      - name: Apply format and push        
+      - name: Apply format ${{ inputs.llvm_version }}" and push
         if: steps.fmt.outputs.rc == '1'
         shell: bash
         run: |
           # skip for forks
           if [ -n "${GITHUB_HEAD_REF:-}" ]; then
-            echo "Fork PR — skipping auto-push"
+            echo "Fork PR - skipping auto-push"
             exit 0
           fi
+
+          files=$(find src include tests -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' \) -print)
+          for f in $files; do
+            clang-format -i -style=file "$f"
+          done
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "style: apply clang-format ${{ inputs.llvm_version }}" -a || echo "No changes to commit"
+          git push
 
