@@ -48,16 +48,30 @@ jobs:
         with:
           path: build_tidy
           key: ${{ inputs.runner }}-tidy-src-${{ hashFiles('./src/**/*.cpp', './src/**/*.cc', './src/**/*.h', './src/**/*.hpp', './include/**/*.h', './include/**/*.hpp') }}
-          
-      - name: Generate compile_commands.json (Linux/macOS)
-        if: runner.os != 'Windows'
+
+
+      - name: Generate compile_commands.json (ÌacOS)
+        if: runner.os == 'macOS'
+        run: |
+          cmake -G Ninja -S . -B build_tidy \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_CXX_STANDARD=20 \
+            -DCMAKE_CXX_EXTENSIONS=OFF \
+            -DCMAKE_OSX_SYSROOT="" \
+            -DCMAKE_OSX_ARCHITECTURES="arm64" \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_FLAGS="-nostdinc" \
+            -DCMAKE_CXX_FLAGS="-nostdinc++ -nostdinc"
+            
+      - name: Generate compile_commands.json (Linux)
+        if: runner.os == 'Linux'
         run: |
           cmake -G Ninja -S . -B build_tidy \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DCMAKE_CXX_STANDARD=20 \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++
-
       
       - name: Generate compile_commands.json (Windows)
         if: runner.os == 'Windows'
