@@ -29,8 +29,8 @@ public:
     using Sink = std::function<void(std::string)>;
 
     Logger() noexcept
-        : sink([](std::string msg) noexcept -> void {
-              std::cout << std::forward<decltype(msg)>(msg);
+        : sink([](const std::string& msg) noexcept -> void {
+              std::cout << msg;
           }) {}
 
     void setLevel(LogLevel level) noexcept {
