@@ -33,7 +33,6 @@ jobs:
         run: |
           set -e
           rc=0
-          CF="${{ inputs.llvm_path }}/clang-format"
           files=$(find src include tests -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' \) -print)
           for f in $files; do
             clang-format --dry-run --Werror -style=file "$f" || rc=1
