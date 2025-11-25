@@ -44,7 +44,7 @@ jobs:
         shell: pwsh
         run: |
       
-      - uses: actions/cache@v4
+      - uses: actions/cache@v3
         with:
           path: build_tidy
           key: ${{ inputs.runner }}-tidy-src-${{ hashFiles('./src/**/*.cpp', './src/**/*.cc', './src/**/*.h', './src/**/*.hpp', './include/**/*.h', './include/**/*.hpp') }}

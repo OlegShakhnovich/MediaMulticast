@@ -24,7 +24,7 @@ jobs:
           llvm_version: ${{ inputs.llvm_version }}
 
         
-      - uses: actions/cache@v4
+      - uses: actions/cache@v3
         with:
           path: build_ninja
           key: ${{ inputs.runner }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}

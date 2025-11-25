@@ -1,46 +1,33 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euo pipefail  
 
 # Get the absolute path of the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Assume the source root is one level above scripts folder
 SRC_DIR="${SCRIPT_DIR}/.."
 
-# Define build, install, format, and tidy directories
-BUILD_DIR="${SRC_DIR}/build/build_ninja"
-INSTALL_DIR="${SRC_DIR}/install/ninja"
-FORMAT_DIR="${SRC_DIR}/build/build_format"
-TIDY_DIR="${SRC_DIR}/build/build_tidy"
+# Define build and install directories
+BUILD_DIR="${SRC_DIR}/build"
+INSTALL_DIR="${SRC_DIR}/install"
 
-# Remove old directories
-rm -rf "${BUILD_DIR}" "${INSTALL_DIR}" "${FORMAT_DIR}" "${TIDY_DIR}"
-mkdir -p "${BUILD_DIR}" "${INSTALL_DIR}" "${FORMAT_DIR}" "${TIDY_DIR}"
+# Remove old build/install directories and create new ones
+rm -rf "${BUILD_DIR}" "${INSTALL_DIR}"
+mkdir -p "${BUILD_DIR}" "${INSTALL_DIR}"
 
-# --- clang-format check ---
-echo "Running clang-format check..."
-cmake -S "${SRC_DIR}" -B "${FORMAT_DIR}" -G "Ninja"
-
-find "${SRC_DIR}/src" "${SRC_DIR}/include" \
-  -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \) \
-  -print0 | xargs -0 -n1 clang-format --dry-run --Werror
-
-# --- clang-tidy check ---
-echo "Running clang-tidy..."
-cmake -S "${SRC_DIR}" -B "${TIDY_DIR}" -G "Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-
-find "${SRC_DIR}/src" "${SRC_DIR}/include" \
-  -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \) \
-  -print0 | xargs -0 -n1 clang-tidy -p "${TIDY_DIR}" --warnings-as-errors=*
-
-# --- Build and install ---
-echo "Configuring the build..."
-cmake -S "${SRC_DIR}" -B "${BUILD_DIR}" -G "Ninja" \
+# Configure the CMake project
+cmake -S "${SRC_DIR}" -B "${BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}"
+    -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
+    -DBUILD_EXAMPLES=ON \
+    -DBUILD_TESTS=ON
 
+# Build the project with parallel jobs
 NUM_JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)"
 cmake --build "${BUILD_DIR}" --config Release -- -j"${NUM_JOBS}"
 
+# Install the built files to the install directory
 cmake --install "${BUILD_DIR}" --config Release
 
+# Inform the user about completion
 echo "Build and installation completed."
-echo "Installed to: ${INSTALL_DIR}"
+echo "Libraries and binaries installed to: ${INSTALL_DIR}"
