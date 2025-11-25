@@ -8,11 +8,11 @@ inputs:
   llvm_version:
     required: true
     description: 'The LLVM version to cache'
-  is-lookup-only:
+  lookup-only:
     required: false
     description: 'Whether to only look up the cache without restoring it'
     default: 'false'
-  is-fail-on-cache-miss:
+  fail-on-cache-miss:
     required: false
     description: 'Whether to fail the step if the cache is not found'
     default: 'false'
@@ -32,8 +32,8 @@ runs:
       with:
         path: ${{ github.workspace }}/llvm
         key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
-        lookup-only: ${{ inputs.is-lookup-only }}
-        fail-on-cache-miss: ${{ inputs.is-fail-on-cache-miss }}
+        lookup-only: ${{ inputs.lookup-only }}
+        fail-on-cache-miss: ${{ inputs.fail-on-cache-miss }}
         restore-keys: |
           global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
           global-llvm-${{ inputs.llvm_version }}
