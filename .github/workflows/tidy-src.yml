@@ -58,16 +58,6 @@ jobs:
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++
 
-      - name: Verify LLD availability (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $llvmBinPath = "C:\LLVM\bin"
-          Write-Host "=== Checking LLD linkers ==="
-          Get-Command "$llvmBinPath\lld.exe", "$llvmBinPath\ld.lld.exe", "$llvmBinPath\lld-link.exe" -ErrorAction SilentlyContinue
-    
-          Write-Host "=== Testing LLD directly ==="
-          & "$llvmBinPath\lld.exe" --version
       
       - name: Generate compile_commands.json (Windows)
         if: runner.os == 'Windows'
@@ -79,10 +69,6 @@ jobs:
             -DCMAKE_CXX_STANDARD=20 `
             -DCMAKE_C_COMPILER="$llvmBinPath\clang.exe" `
             -DCMAKE_CXX_COMPILER="$llvmBinPath\clang++.exe" `
-            -DCMAKE_C_FLAGS="-fuse-ld=lld -stdlib=libc++" `
-            -DCMAKE_CXX_FLAGS="-fuse-ld=lld -stdlib=libc++" `
-            -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" `
-            -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld"
 
 
       - name: Upload compile_commands.json
