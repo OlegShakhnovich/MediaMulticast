@@ -18,6 +18,7 @@ runs:
       with:
         runner: ${{ inputs.runner }}
         llvm_version: ${{ inputs.llvm_version }}
+        fail-on-cache-miss: 'true'
 
 
     - name: Add LLVM to PATH on Linux/macOS
