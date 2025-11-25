@@ -50,7 +50,7 @@ jobs:
 #          fi
 #          files=$(find src include tests -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' \) -print)
 #          for f in $files; do
-#            "${CF}" -i -style=file "$f"
+#            clang-format -i -style=file "$f"
 #          done
 #          git config user.name "github-actions[bot]"
 #          git config user.email "github-actions[bot]@users.noreply.github.com"
