@@ -65,7 +65,7 @@ jobs:
             -DCMAKE_CXX_EXTENSIONS=OFF \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_LINKER="-isystem $GITHUB_WORKSPACE/llvm/bin/ld64.lld"
+            -DCMAKE_LINKER="-isystem $GITHUB_WORKSPACE/llvm/bin/ld64.lld" \
             -DCMAKE_C_FLAGS="-isystem $GITHUB_WORKSPACE/llvm/bin/clang" \
             -DCMAKE_CXX_FLAGS="-isystem $GITHUB_WORKSPACE/llvm/bin/clang++"
 
