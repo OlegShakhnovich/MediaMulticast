@@ -32,11 +32,12 @@ runs:
       with:
         path: ${{ github.workspace }}/llvm
         key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
-        lookup-only: ${{ inputs.is_lookup-only }}
+        lookup-only: ${{ inputs.is-lookup-only }}
         fail-on-cache-miss: ${{ inputs.is-fail-on-cache-miss }}
         restore-keys: |
           global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
           global-llvm-${{ inputs.llvm_version }}
+
 
 
     - name: Cache LLVM directory (Windows)
