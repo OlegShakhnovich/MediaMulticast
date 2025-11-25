@@ -62,6 +62,7 @@ jobs:
           cmake -G Ninja -S . -B build_tidy \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DCMAKE_CXX_STANDARD=20 \
+            -DCMAKE_OSX_SYSROOT="" \
             -DCMAKE_CXX_EXTENSIONS=OFF \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++ \
