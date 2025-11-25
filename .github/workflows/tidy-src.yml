@@ -61,8 +61,8 @@ jobs:
             -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_OSX_ARCHITECTURES="arm64" \
             -DCMAKE_OSX_SYSROOT=NONE \
-            -DCMAKE_C_FLAGS="-isystem $GITHUB_WORKSPACE/llvm/include/c++/v1" \
-            -DCMAKE_CXX_FLAGS="-isystem $GITHUB_WORKSPACE/llvm/include/c++/v1"
+            -DCMAKE_C_FLAGS="--sysroot=/ -isystem $GITHUB_WORKSPACE/llvm/include/c++/v1" \
+            -DCMAKE_CXX_FLAGS="--sysroot=/ -isystem $GITHUB_WORKSPACE/llvm/include/c++/v1"
             
       - name: Generate compile_commands.json (Linux)
         if: runner.os == 'Linux'
