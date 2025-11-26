@@ -25,7 +25,7 @@ jobs:
           llvm_version: ${{ inputs.llvm_version }}
         
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: build_tidy_tests
           key: ${{ inputs.runner }}-tidy-tests-${{ hashFiles('./tests/**/*.cpp', './tests/**/*.cc', './tests/**/*.h', './tests/**/*.hpp') }}
