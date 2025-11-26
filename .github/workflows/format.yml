@@ -40,12 +40,12 @@ jobs:
           echo "rc=$rc" >> $GITHUB_OUTPUT
     
           
-      - name: Apply format ${{ inputs.llvm_version }}" and push
+      - name: Apply format ${{ inputs.llvm_version }} and push
         if: steps.fmt.outputs.rc == '1'
         shell: bash
         run: |
-          # skip for forks
-          if [ -n "${GITHUB_HEAD_REF:-}" ]; then
+          # Checking if this is a PR from a fork
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_REPOSITORY" != "${{ github.event.pull_request.head.repo.full_name }}" ]; then
             echo "Fork PR - skipping auto-push"
             exit 0
           fi
@@ -55,9 +55,15 @@ jobs:
             clang-format -i -style=file "$f"
           done
 
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "style: apply clang-format ${{ inputs.llvm_version }}" -a || echo "No changes to commit"
-          git push
+          #git config user.name "github-actions[bot]"
+          #git config user.email "github-actions[bot]@users.noreply.github.com"
+          #git add .
+          #git commit -m "style: apply clang-format ${{ inputs.llvm_version }}" -a || echo "No changes to commit"
+              
+          # Get the name of the current branch
+          CURRENT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          echo "Current branch: $CURRENT_BRANCH"
+    
+          # Пушим в текущую ветку
+          #git push origin HEAD:$CURRENT_BRANCH
 
