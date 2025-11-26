@@ -95,12 +95,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $llvmBinPath = "%USERPROFILE%\tools\LLVM\bin"
           cmake -G Ninja -S . -B build_tidy `
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
             -DCMAKE_CXX_STANDARD=20 `
-            -DCMAKE_C_COMPILER="$llvmBinPath\clang.exe" `
-            -DCMAKE_CXX_COMPILER="$llvmBinPath\clang++.exe" 
+            -DCMAKE_C_COMPILER=clang.exe `
+            -DCMAKE_CXX_COMPILER=clang++.exe 
 
 
       - name: Upload compile_commands.json
