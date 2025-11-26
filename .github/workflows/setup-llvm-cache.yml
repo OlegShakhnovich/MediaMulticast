@@ -21,13 +21,6 @@ jobs:
         uses: actions/checkout@v4
 
 
-      - name: Prepare LLVM directory (Linux/macOS)
-        if: ${{ inputs.runner != 'windows-latest' }}
-        shell: bash
-        run: |
-          mkdir -p "$RUNNER_TOOL_CACHE/llvm-${{ inputs.llvm_version }}"
-
-
       - name: Cache LLVM
         uses: ./.github/actions/cache-llvm
         id: cache-llvm
@@ -45,8 +38,8 @@ jobs:
           sudo apt-get install -y wget xz-utils
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
           DEST="$RUNNER_TOOL_CACHE/llvm-${{ inputs.llvm_version }}"
-          mkdir -p "$DEST"
-          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz -C "$DEST" --strip-components=1
+          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
+          mv LLVM-${{ inputs.llvm_version }}-Linux-X64 llvm
 
       - name: Download and extract LLVM on macOS
         if: ${{ inputs.runner == 'macos-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
@@ -54,8 +47,8 @@ jobs:
         run: |
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
           DEST="$RUNNER_TOOL_CACHE/llvm-${{ inputs.llvm_version }}"
-          mkdir -p "$DEST"
-          tar -xf LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz -C "$DEST" --strip-components=1
+          tar -xf LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
+          mv LLVM-${{ inputs.llvm_version }}-macOS-ARM64 llvm
           
       - name: Download and extract LLVM on Windows
         if: ${{ inputs.runner == 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
