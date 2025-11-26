@@ -55,17 +55,17 @@ jobs:
             clang-format -i -style=file "$f"
           done
 
-          #git config user.name "github-actions[bot]"
-          #git config user.email "github-actions[bot]@users.noreply.github.com"
-          #git add .
-          #git commit -m "style: apply clang-format ${{ inputs.llvm_version }}" -a || echo "No changes to commit"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "style: apply clang-format ${{ inputs.llvm_version }}" -a || echo "No changes to commit"
           
           # Get the name of the current branch
           CURRENT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
           echo "Current branch: $CURRENT_BRANCH"
 
           # Push to the current branch
-          #git push origin HEAD:$CURRENT_BRANCH
+          git push origin HEAD:$CURRENT_BRANCH
           echo "Auto-formatting applied. Please review and commit the changes manually."
           exit 1
 
