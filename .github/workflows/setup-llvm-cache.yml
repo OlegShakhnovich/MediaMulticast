@@ -70,13 +70,13 @@ jobs:
           }
           tar -xf $archive -C $dest --strip-components=1
 
-      - name: Cache LLVM
+      - name: New Cache LLVM
         uses: ./.github/actions/cache-llvm
-        if: runner.os != 'Windows'
+        if: ${{ inputs.runner == 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
         with:
           runner: ${{ inputs.runner }}
           llvm_version: ${{ inputs.llvm_version }}
-          lookup-only: 'true'
+          lookup-only: 'false'
           fail-on-cache-miss: 'false'
 
       - name: Verify installation
