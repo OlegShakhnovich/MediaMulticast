@@ -30,6 +30,7 @@ jobs:
           lookup-only: 'true'
           fail-on-cache-miss: 'false'
 
+
       - name: Download and extract LLVM on Linux
         if: ${{ inputs.runner == 'ubuntu-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
         shell: bash
@@ -62,13 +63,6 @@ jobs:
             New-Item -ItemType Directory -Force -Path $dest | Out-Null
           }
           tar -xf $archive -C $dest --strip-components=1
-          
-      - name: Save LLVM to cache
-        uses: actions/cache/save@v4
-        if: ${{ inputs.runner != 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}        
-        with:
-          key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
-          path: $RUNNER_TOOL_CACHE/llvm-${{ inputs.llvm_version }}
 
 
       - name: Verify installation
