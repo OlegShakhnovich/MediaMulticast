@@ -72,7 +72,7 @@ jobs:
 
       - name: Cache LLVM
         uses: ./.github/actions/cache-llvm
-        if: ${ inputs.runner != 'windows-latest'}}
+        if: runner.os == 'Windows'
         with:
           runner: ${{ inputs.runner }}
           llvm_version: ${{ inputs.llvm_version }}
