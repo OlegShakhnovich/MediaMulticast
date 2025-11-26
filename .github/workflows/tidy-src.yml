@@ -33,6 +33,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          Get-Location 
           Write-Host "Which clang-tidy is being used:"
           Get-Command clang-tidy
           Write-Host "Clang-tidy version:"
