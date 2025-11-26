@@ -70,6 +70,9 @@ jobs:
         with:
           key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
           path: $RUNNER_TOOL_CACHE/llvm-${{ inputs.llvm_version }}
+          restore-keys: |
+            global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
+            global-llvm-${{ inputs.llvm_version }}
 
       - name: Verify installation
         run: |
