@@ -33,11 +33,10 @@ runs:
         LLVM_DIR:  $HOME/.cache/llvm-${{ inputs.llvm_version }}
       uses: actions/cache/restore@v4
       with:
-        path: $HOME/.cache
+        path: $HOME/.cache/llvm-${{ inputs.llvm_version }}
         key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
         lookup-only: ${{ inputs.lookup-only }}
         fail-on-cache-miss: ${{ inputs.fail-on-cache-miss }}
-        save-always: true
         restore-keys: |
           global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
           global-llvm-${{ inputs.llvm_version }}
@@ -49,7 +48,7 @@ runs:
       id: cache-llvm-windows
       uses: actions/cache@v4
       with:
-        path: "%USERPROFILE%/tools/"
+        path: "%USERPROFILE%/tools/LLVM"
         key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
         lookup-only: ${{ inputs.lookup-only }}
         fail-on-cache-miss: ${{ inputs.fail-on-cache-miss }}
