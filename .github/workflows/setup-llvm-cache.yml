@@ -37,16 +37,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget xz-utils
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
-          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
-          mv LLVM-${{ inputs.llvm_version }}-Linux-X64 llvm
+          DEST="$RUNNER_TOOL_CACHE/llvm-${{ inputs.llvm_version }}"
+          mkdir -p "$DEST"
+          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz -C "$DEST" --strip-components=1
 
       - name: Download and extract LLVM on macOS
         if: ${{ inputs.runner == 'macos-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
         shell: bash
         run: |
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
-          tar -xf LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
-          mv LLVM-${{ inputs.llvm_version }}-macOS-ARM64 llvm
+          DEST="$RUNNER_TOOL_CACHE/llvm-${{ inputs.llvm_version }}"
+          mkdir -p "$DEST"
+          tar -xf LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz -C "$DEST" --strip-components=1
           
       - name: Download and extract LLVM on Windows
         if: ${{ inputs.runner == 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
@@ -55,7 +57,7 @@ jobs:
           $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-pc-windows-msvc.tar.xz"
           $archive = "llvm.tar.xz"
           Invoke-WebRequest -Uri $url -OutFile $archive
-          $dest = "C:\LLVM"
+          $dest = "C:\llvm-${{ inputs.llvm_version }}"
           if (-Not (Test-Path $dest)) {
             New-Item -ItemType Directory -Force -Path $dest | Out-Null
           }

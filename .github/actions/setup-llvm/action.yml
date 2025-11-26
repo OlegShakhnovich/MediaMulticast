@@ -46,7 +46,7 @@ runs:
       if: ${{ inputs.runner == 'windows-latest' }}
       shell: pwsh
       run: |
-        echo "C:\LLVM\bin" >> $GITHUB_PATH
+        echo "C:\llvm-${{ inputs.llvm_version }}\bin" >> $GITHUB_PATH
 
     - name: Verify LLVM version and priority (Linux/macOS)
       if: ${{ inputs.runner != 'windows-latest' }}
