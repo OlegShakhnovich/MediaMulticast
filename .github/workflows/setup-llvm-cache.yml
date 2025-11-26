@@ -74,6 +74,7 @@ jobs:
           path: $HOME/llvm-${{ inputs.llvm_version }}
           key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
           fail-on-cache-miss: 'false'
+          lookup-only: 'false'
           restore-keys: |
             global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
             global-llvm-${{ inputs.llvm_version }}
