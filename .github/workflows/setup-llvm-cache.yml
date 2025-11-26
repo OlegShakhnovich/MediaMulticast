@@ -76,7 +76,7 @@ jobs:
 
       - name: Save LLVM to cache (Linux/macOS)
         if: ${{ inputs.runner != 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
-        uses: ./.github/actions/cache-llvm
+        uses: actions/cache/save@v4
         with:
           runner: ${{ inputs.runner }}
           llvm_version: ${{ inputs.llvm_version }}
