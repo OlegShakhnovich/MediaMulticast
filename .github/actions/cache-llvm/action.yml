@@ -25,6 +25,13 @@ outputs:
 runs:
   using: "composite"
   steps:
+
+    - name: Pre-create LLVM directory
+      if: ${{ inputs.runner != 'windows-latest' }}
+      shell: bash
+      run: mkdir -p "$HOME/llvm-${{ inputs.llvm_version }}"
+
+
     - name: Cache LLVM directory (Linux/macOS)
       if: ${{ inputs.runner != 'windows-latest' }}
       id: cache-llvm-unix
