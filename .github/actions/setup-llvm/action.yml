@@ -21,26 +21,11 @@ runs:
         fail-on-cache-miss: 'true'
 
 
-    # Linux/macOS: use RUNNER_TOOL_CACHE ---
-    - name: Resolve LLVM directory
-      id: llvm_dir
-      if: ${{ inputs.runner != 'windows-latest' }}
-      shell: bash
-      run: |
-        TOOL_ROOT="${RUNNER_TOOL_CACHE}/llvm-${{ inputs.llvm_version }}"
-        echo "tool_root=$TOOL_ROOT" >> $GITHUB_OUTPUT
-
-        if [ ! -d "$TOOL_ROOT/bin" ]; then
-          echo "ERROR: LLVM was not restored correctly into $TOOL_ROOT"
-          exit 1
-        fi
-
-
     - name: Add LLVM to PATH on Linux/macOS
       if: ${{ inputs.runner != 'windows-latest' }}
       shell: bash
       run: |
-        echo "${{ steps.llvm_dir.outputs.tool_root }}/bin" >> $GITHUB_PATH
+        echo "/opt/hostedtoolcache/llvm-${{ inputs.llvm_version }}/bin" >> $GITHUB_PATH
 
     # Windows: standard install path
     - name: Add LLVM to PATH on Windows
