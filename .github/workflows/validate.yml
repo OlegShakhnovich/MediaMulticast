@@ -31,6 +31,14 @@ jobs:
       runner: windows-latest
       llvm_version: "21.1.6"
 
+  format-linux:
+    needs: setup-llvm-cache-linux
+    uses: ./.github/workflows/format.yml
+    with:
+      llvm_version: "21.1.6"
+    permissions:
+      contents: write
+
   tidy-src-linux:
     needs: setup-llvm-cache-linux
     uses: ./.github/workflows/tidy-src.yml
@@ -72,14 +80,6 @@ jobs:
     with:
       runner: windows-latest
       llvm_version: "21.1.6"
-
-  format-linux:
-    needs: setup-llvm-cache-linux
-    uses: ./.github/workflows/format.yml
-    with:
-      llvm_version: "21.1.6"
-    permissions:
-      contents: write
 
   build-linux:
     needs: setup-llvm-cache-linux
