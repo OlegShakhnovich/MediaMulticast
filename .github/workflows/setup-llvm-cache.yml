@@ -46,6 +46,7 @@ jobs:
           sudo apt-get install -y wget xz-utils
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
           DEST="$HOME/.cache//llvm-${{ inputs.llvm_version }}"
+          mkdir -p "$DEST"
           ls -la "$DEST" || echo "Directory not created"
           tar -xf LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz -C "$DEST" --strip-components=1
 
@@ -55,6 +56,7 @@ jobs:
         run: |
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
           DEST="$HOME/.cache/llvm-${{ inputs.llvm_version }}"
+          mkdir -p "$DEST"
           ls -la "$DEST" || echo "Directory not created"
           tar -xf LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz -C "$DEST" --strip-components=1
           
