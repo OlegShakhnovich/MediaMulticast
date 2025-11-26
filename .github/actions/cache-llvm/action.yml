@@ -33,7 +33,7 @@ runs:
         LLVM_DIR:  $HOME/.cache/llvm-${{ inputs.llvm_version }}
       uses: actions/cache/restore@v4
       with:
-        path: $HOME/llvm-${{ inputs.llvm_version }}
+        path: $HOME/.cache
         key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
         lookup-only: ${{ inputs.lookup-only }}
         fail-on-cache-miss: ${{ inputs.fail-on-cache-miss }}
