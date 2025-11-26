@@ -45,7 +45,7 @@ runs:
     # Windows: standard install path
     - name: Add LLVM to PATH on Windows
       if: ${{ inputs.runner == 'windows-latest' }}
-      shell: pwsh
+      shell: bash
       run: |
         echo "C:\LLVM\bin" >> $GITHUB_PATH
 
