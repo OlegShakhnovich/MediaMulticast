@@ -72,7 +72,7 @@ jobs:
 
       - name: New Cache LLVM
         uses: ./.github/actions/cache-llvm
-        if: ${{ inputs.runner == 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
+        if: ${{ inputs.runner != 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
         with:
           runner: ${{ inputs.runner }}
           llvm_version: ${{ inputs.llvm_version }}
