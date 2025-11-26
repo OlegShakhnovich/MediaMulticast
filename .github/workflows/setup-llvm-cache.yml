@@ -71,10 +71,8 @@ jobs:
         with:
           path: ~/tools/llvm-${{ inputs.llvm_version }}
           key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
-          fail-on-cache-miss: 'true'
-          restore-keys: |
-            global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
-            global-llvm-${{ inputs.llvm_version }}
+          fail-on-cache-miss: 'false'
+
 
       - name: Verify installation
         run: |
