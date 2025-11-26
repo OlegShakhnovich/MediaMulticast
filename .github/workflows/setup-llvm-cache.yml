@@ -64,12 +64,14 @@ jobs:
           }
           tar -xf $archive -C $dest --strip-components=1
 
-      - name: Save LLVM to cache
-        uses: actions/cache/save@v4
-        if: ${{ inputs.runner != 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}        
+      - name: Cache LLVM directory (Linux/macOS)
+        if: ${{ inputs.runner != 'windows-latest' }}
+        id: cache-llvm-unix
+        uses: actions/cache@v4
         with:
+          path: ~/tools/llvm-${{ inputs.llvm_version }}
           key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
-          path: $RUNNER_TOOL_CACHE/llvm-${{ inputs.llvm_version }}
+          fail-on-cache-miss: 'true'
           restore-keys: |
             global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
             global-llvm-${{ inputs.llvm_version }}
