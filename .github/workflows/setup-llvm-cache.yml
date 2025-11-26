@@ -74,6 +74,16 @@ jobs:
           tar -xf $archive -C $dest --strip-components=1
 
 
+      - name: Save LLVM to cache (Linux/macOS)
+        if: ${{ inputs.runner != 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
+        uses: ./.github/actions/cache-llvm
+        with:
+          runner: ${{ inputs.runner }}
+          llvm_version: ${{ inputs.llvm_version }}
+          lookup-only: 'true'
+          fail-on-cache-miss: 'false'
+
+
       - name: Verify installation
         run: |
           echo "=== Checking clang version ==="
