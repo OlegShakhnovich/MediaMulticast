@@ -1,0 +1,175 @@
+name: Tidy-src (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      llvm_version:
+        required: true
+        type: string
+
+jobs:
+  tidy-src:
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+  
+      - name: Setup LLVM ${{ inputs.llvm_version }}
+        uses: ./.github/actions/setup-llvm
+        with:
+          runner: ${{ inputs.runner }}
+          llvm_version: ${{ inputs.llvm_version }}
+
+      - name: Check llvm
+        run: |
+          clang --version || true
+          clang-format --version || true
+          clang-tidy --version || true
+
+      - name: Check actual LLVM version (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-Location 
+          Write-Host "Which clang-tidy is being used:"
+          Get-Command clang-tidy
+          Write-Host "Clang-tidy version:"
+          clang-tidy --version
+
+
+      - name: Debug LLVM path on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+      
+      - uses: actions/cache@v4
+        with:
+          path: build_tidy
+          key: ${{ inputs.runner }}-tidy-src-${{ hashFiles('./src/**/*.cpp', './src/**/*.cc', './src/**/*.h', './src/**/*.hpp', './include/**/*.h', './include/**/*.hpp') }}
+
+      - name: Check LLD availability
+        run: |
+          which ld.lld
+          which ld64.lld
+          ld.lld --version || true
+
+
+      - name: Generate compile_commands.json (MacOS)
+        if: runner.os == 'macOS'
+        run: |
+          cmake -G Ninja -S . -B build_tidy \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+          -DCMAKE_CXX_STANDARD=20 \
+          -DCMAKE_CXX_EXTENSIONS=OFF \
+          \
+          -DCMAKE_C_COMPILER="$GITHUB_WORKSPACE/llvm/bin/clang" \
+          -DCMAKE_CXX_COMPILER="$GITHUB_WORKSPACE/llvm/bin/clang++" \
+          -DCMAKE_LINKER="$GITHUB_WORKSPACE/llvm/bin/ld64.lld" \
+          -DCMAKE_AR="$GITHUB_WORKSPACE/llvm/bin/llvm-ar" \
+          -DCMAKE_RANLIB="$GITHUB_WORKSPACE/llvm/bin/llvm-ranlib" \
+          \
+          -DCMAKE_C_FLAGS=""  \
+          -DCMAKE_CXX_FLAGS=" -nostdinc++ -nostdinc -isystem $GITHUB_WORKSPACE/llvm/include/c++/v1 " \
+          \
+          -DCMAKE_EXE_LINKER_FLAGS=" -L$GITHUB_WORKSPACE/llvm/lib -lc++ -lc++abi -lunwind " \
+          -DCMAKE_SHARED_LINKER_FLAGS=" -L$GITHUB_WORKSPACE/llvm/lib -lc++ -lc++abi -lunwind "
+
+      - name: Find compilers
+        run: |
+          which clang
+          which clang++
+            
+      - name: Generate compile_commands.json (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          cmake -G Ninja -S . -B build_tidy \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_CXX_STANDARD=20 \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++
+      
+      - name: Generate compile_commands.json (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $llvmBinPath = "C:\LLVM\bin"
+          cmake -G Ninja -S . -B build_tidy `
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
+            -DCMAKE_CXX_STANDARD=20 `
+            -DCMAKE_C_COMPILER="$llvmBinPath\clang.exe" `
+            -DCMAKE_CXX_COMPILER="$llvmBinPath\clang++.exe" `
+
+
+      - name: Upload compile_commands.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: compile_commands-src-${{ inputs.runner }}
+          path: build_tidy/compile_commands.json
+
+
+      - name: Verify compiler selection (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "=== Checking actual compiler ==="
+          Write-Host "Clang version:"
+          clang --version
+          Write-Host "Clang++ version:"
+          clang++ --version
+          Write-Host "CMake C compiler:"
+          cmake -B test_build -S . -N -DCMAKE_C_COMPILER="clang" -DCMAKE_CXX_COMPILER="clang++"
+          Write-Host "=== CMake completed successfully ==="
+
+
+      - name: Run clang-tidy on src/include (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          files=$(find src include -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
+          any_error=false
+    
+          for f in $files; do
+            echo "Checking: $f"
+            if clang-tidy -config-file=.clang-tidy -p build_tidy "$f"; then
+              echo "No issues found in: $f"
+            else
+              echo "clang-tidy found issues in: $f"
+              any_error=true
+            fi
+          done
+    
+          if [ "$any_error" = true ]; then
+            echo "clang-tidy found issues in one or more files. Job failed."
+            exit 1
+          else
+            echo "clang-tidy completed successfully - no issues found in any files."
+          fi
+       
+      - name: Run clang-tidy on src/include (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |    
+          $config = Join-Path $PWD ".clang-tidy"    
+          $files = Get-ChildItem -Recurse src,include -Include *.cpp,*.cc,*.h,*.hpp
+          $anyError = $false
+    
+          foreach ($f in $files) {
+            Write-Host "Checking: $($f.FullName)"
+            & clang-tidy -config-file "$config" -p build_tidy $f.FullName
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "clang-tidy found issues in: $($f.FullName)" -ForegroundColor Red
+              $anyError = $true
+            } else {
+              Write-Host "No issues found in: $($f.FullName)"
+            }
+          }
+    
+          if ($anyError) {
+            Write-Error "clang-tidy found issues in one or more files. Job failed."
+            exit 1
+          } else {
+            Write-Host "clang-tidy completed successfully - no issues found in any files."
+          }

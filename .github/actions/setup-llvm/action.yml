@@ -1,0 +1,123 @@
+name: 'Setup LLVM'
+description: 'Setup cached LLVM, add to PATH and verify version'
+
+inputs:
+  runner:
+    required: true
+    description: 'The runner OS (ubuntu-latest, macos-latest, windows-latest)'
+  llvm_version:
+    required: true
+    description: 'The LLVM version to install and verify'
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Cache LLVM
+      uses: ./.github/actions/cache-llvm
+      with:
+        runner: ${{ inputs.runner }}
+        llvm_version: ${{ inputs.llvm_version }}
+        fail-on-cache-miss: 'true'
+
+
+    - name: Add LLVM to PATH on Linux/macOS
+      if: ${{ inputs.runner != 'windows-latest' }}
+      shell: bash
+      run: |
+        echo "/opt/hostedtoolcache/llvm-${{ inputs.llvm_version }}/bin" >> $GITHUB_PATH
+
+    # Windows: standard install path
+    - name: Add LLVM to PATH on Windows
+      if: ${{ inputs.runner == 'windows-latest' }}
+      shell: bash
+      run: |
+        echo "C:\LLVM\bin" >> $GITHUB_PATH
+
+    - name: Verify LLVM version and priority (Linux/macOS)
+      if: ${{ inputs.runner != 'windows-latest' }}
+      shell: bash
+      run: |
+        echo "=== Verifying LLVM ${{ inputs.llvm_version }} is used ==="
+        
+        # Check which clang-tidy is being used
+        echo "=== Which clang-tidy ==="
+        which clang-tidy || echo "clang-tidy not found in PATH"
+        
+        # Verify version matches what we want
+        echo "=== Clang-tidy version ==="
+        clang-tidy --version 2>&1
+        
+        # Extract version from output and verify
+        INSTALLED_VERSION=$(clang-tidy --version 2>&1 | grep -oE 'LLVM version [0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    
+        if [ -z "$INSTALLED_VERSION" ]; then
+          INSTALLED_VERSION=$(clang-tidy --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        fi
+
+        EXPECTED_VERSION="${{ inputs.llvm_version }}"
+        
+        echo "Installed version: $INSTALLED_VERSION"
+        echo "Expected version: $EXPECTED_VERSION"
+        
+        if [ -z "$INSTALLED_VERSION" ]; then
+          echo "WARNING: Could not extract version from output, but continuing..."
+        elif [ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]; then
+          echo "ERROR: Version mismatch! Expected $EXPECTED_VERSION but found $INSTALLED_VERSION"
+          exit 1
+        fi
+
+
+    - name: Verify LLVM version and priority (Windows)
+      if: ${{ inputs.runner == 'windows-latest' }}
+      shell: pwsh
+      run: |
+        Write-Host "=== Verifying LLVM ${{ inputs.llvm_version }} is used ==="
+    
+        # Check which clang-tidy is being used
+        Write-Host "=== Which clang-tidy ==="
+        Get-Command clang-tidy -ErrorAction SilentlyContinue
+    
+        # Verify version matches what we want
+        Write-Host "=== Clang-tidy version ==="
+        $versionOutput = clang-tidy --version 2>&1 | Out-String
+        Write-Host $versionOutput
+    
+        # Extract version from output using multiple methods
+        $INSTALLED_VERSION = "unknown"
+    
+        # Method 1: Try to extract version using regex
+        $versionOutput -match 'LLVM version\s+([0-9]+\.[0-9]+\.[0-9]+)'
+        $INSTALLED_VERSION = $Matches[1]    
+        $EXPECTED_VERSION = "${{ inputs.llvm_version }}"
+    
+        Write-Host "Installed version: $INSTALLED_VERSION"
+        Write-Host "Expected version: $EXPECTED_VERSION"
+    
+        if ($INSTALLED_VERSION -ne $EXPECTED_VERSION -and $INSTALLED_VERSION -ne "unknown") {
+            Write-Error "ERROR: Version mismatch! Expected $EXPECTED_VERSION but found $INSTALLED_VERSION"
+            exit 1
+        } elseif ($INSTALLED_VERSION -eq "unknown") {
+            Write-Host "WARNING: Could not verify version, but continuing..."
+        }
+
+    - name: Check LLVM tools (Linux/macOS)
+      if: ${{ inputs.runner != 'windows-latest' }}
+      shell: bash
+      run: |
+        echo "=== Checking LLVM tools ==="
+        clang --version || echo "clang not found"
+        clang-format --version || echo "clang-format not found"
+        clang-tidy --version || echo "clang-tidy not found"
+
+    - name: Check LLVM tools (Windows)
+      if: ${{ inputs.runner == 'windows-latest' }}
+      shell: pwsh
+      run: |
+        Write-Host "=== Checking LLVM tools ==="
+        clang --version 2>&1 | Out-Host
+        if ($LASTEXITCODE -ne 0) { Write-Host "clang not found" }
+        clang-format --version 2>&1 | Out-Host
+        if ($LASTEXITCODE -ne 0) { Write-Host "clang-format not found" }
+        clang-tidy --version 2>&1 | Out-Host
+        if ($LASTEXITCODE -ne 0) { Write-Host "clang-tidy not found" }
