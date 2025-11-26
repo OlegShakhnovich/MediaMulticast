@@ -26,19 +26,11 @@ runs:
   using: "composite"
   steps:
 
-    - name: Pre-create LLVM directory
-      if: ${{ inputs.runner != 'windows-latest' }}
-      shell: bash
-      env:
-        LLVM_DIR: $HOME/llvm-${{ inputs.llvm_version }}
-      run: mkdir -p "$LLVM_DIR"
-
-
     - name: Cache LLVM directory (Linux/macOS)
       if: ${{ inputs.runner != 'windows-latest' }}
       id: cache-llvm-unix
       env:
-        LLVM_DIR: $HOME/llvm-${{ inputs.llvm_version }}
+        LLVM_DIR:  $HOME/.cache/llvm-${{ inputs.llvm_version }}
       uses: actions/cache/restore@v4
       with:
         path: $HOME/llvm-${{ inputs.llvm_version }}
