@@ -21,6 +21,11 @@ jobs:
         uses: actions/checkout@v4
 
 
+      - name: Pre-create LLVM directory
+        if: inputs.runner != 'windows-latest'
+        shell: bash
+        run: mkdir -p "$HOME/llvm-${{ inputs.llvm_version }}"
+
       - name: Cache LLVM
         uses: ./.github/actions/cache-llvm
         id: cache-llvm
