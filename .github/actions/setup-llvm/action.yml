@@ -24,6 +24,7 @@ runs:
     # Linux/macOS: use RUNNER_TOOL_CACHE ---
     - name: Resolve LLVM directory
       id: llvm_dir
+      if: ${{ inputs.runner != 'windows-latest' }}
       shell: bash
       run: |
         TOOL_ROOT="${RUNNER_TOOL_CACHE}/llvm-${{ inputs.llvm_version }}"
