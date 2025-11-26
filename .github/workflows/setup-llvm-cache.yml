@@ -24,7 +24,9 @@ jobs:
       - name: Pre-create LLVM directory
         if: inputs.runner != 'windows-latest'
         shell: bash
-        run: mkdir -p "$HOME/llvm-${{ inputs.llvm_version }}"
+        env:
+          LLVM_DIR: $HOME/llvm-${{ inputs.llvm_version }}
+        run: mkdir -p "$LLVM_DIR"
 
       - name: Cache LLVM
         uses: ./.github/actions/cache-llvm
