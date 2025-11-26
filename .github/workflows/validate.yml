@@ -74,7 +74,7 @@ jobs:
       llvm_version: "21.1.6"
 
   format-linux:
-
+    needs: setup-llvm-cache-linux
     uses: ./.github/workflows/format.yml
     with:
       llvm_version: "21.1.6"
