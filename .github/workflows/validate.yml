@@ -82,21 +82,21 @@ jobs:
       contents: write
 
   build-linux:
-    needs: [tidy-src-linux, tidy-tests-linux, format-linux]
+    needs: setup-llvm-cache-linux
     uses: ./.github/workflows/build.yml
     with:
       runner: ubuntu-latest
       llvm_version: "21.1.6"
 
   build-macos:
-    needs: [tidy-tests-macos, tidy-src-macos, format-linux]
+    needs: setup-llvm-cache-macos
     uses: ./.github/workflows/build.yml
     with:
       runner: macos-latest
       llvm_version: "21.1.6"
 
   build-windows:
-    needs: [tidy-tests-windows, tidy-src-windows, format-linux]
+    needs: setup-llvm-cache-windows
     uses: ./.github/workflows/build.yml
     with:
       runner: windows-latest

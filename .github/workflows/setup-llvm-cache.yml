@@ -38,7 +38,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget xz-utils
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
-          DEST="/opt/hostedtoolcache/llvm-${{ inputs.llvm_version }}"
+          DEST="~/tools/llvm-${{ inputs.llvm_version }}"
           mkdir -p "$DEST"
           tar -xf LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz -C "$DEST" --strip-components=1
 
@@ -47,7 +47,7 @@ jobs:
         shell: bash
         run: |
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
-          DEST="/opt/hostedtoolcache/llvm-${{ inputs.llvm_version }}"
+          DEST="~/tools/llvm-${{ inputs.llvm_version }}"
           mkdir -p "$DEST"
           tar -xf LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz -C "$DEST" --strip-components=1
           
@@ -58,7 +58,7 @@ jobs:
           $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-pc-windows-msvc.tar.xz"
           $archive = "llvm.tar.xz"
           Invoke-WebRequest -Uri $url -OutFile $archive
-          $dest = "C:\LLVM"
+          $dest = "%USERPROFILE%\tools\LLVM"
           if (-Not (Test-Path $dest)) {
             New-Item -ItemType Directory -Force -Path $dest | Out-Null
           }
