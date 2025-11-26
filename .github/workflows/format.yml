@@ -31,10 +31,9 @@ jobs:
       - name: Check formatting
         id: fmt
         run: |
-          echo "Current directory: $(pwd)"
           set -e
           rc=0
-          files=$(find ./src ./include ./tests -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' \) -print)
+          files=$(git ls-files "src" "include" "tests" | grep -E '\.(cpp|cc|hpp|h|c)$' || true)
           for f in $files; do
             clang-format --dry-run --Werror -style=file "$f" || rc=1
           done
@@ -51,7 +50,7 @@ jobs:
             exit 0
           fi
 
-          files=$(find ./src ./include ./tests -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' \) -print)
+          files=$(git ls-files "src" "include" "tests" | grep -E '\.(cpp|cc|hpp|h|c)$' || true)
           for f in $files; do
             clang-format -i -style=file "$f"
           done
