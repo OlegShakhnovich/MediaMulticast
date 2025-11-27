@@ -127,10 +127,9 @@ jobs:
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          files=$(find src include -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
-          any_error=false
+          IFS=$'\n' read -d '' -r -a files < <(find src include -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \) -print0 | xargs -0 -n1 echo)
     
-          for f in $files; do
+          for f in "${files[@]}"; do
             echo "Checking: $f"
             if clang-tidy -config-file=.clang-tidy -p build_tidy "$f"; then
               echo "No issues found in: $f"
