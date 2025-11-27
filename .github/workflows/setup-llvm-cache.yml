@@ -67,7 +67,7 @@ jobs:
           $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-pc-windows-msvc.tar.xz"
           $archive = "llvm.tar.xz"
           Invoke-WebRequest -Uri $url -OutFile $archive
-          $dest = "$USERPROFILE\tools\LLVM"
+          $dest = "$env:USERPROFILE/tools/LLVM"
           if (-Not (Test-Path $dest)) {
             New-Item -ItemType Directory -Force -Path $dest | Out-Null
           }

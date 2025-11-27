@@ -30,9 +30,9 @@ runs:
 
     - name: Add LLVM to PATH on Windows
       if: ${{ inputs.runner == 'windows-latest' }}
-      shell: bash
+      shell: pwsh
       run: |
-        echo "$USERPROFILE\tools\LLVM\bin" >> $GITHUB_PATH
+        echo "$USERPROFILE/tools/LLVM/bin" >> $GITHUB_PATH
 
     - name: Verify LLVM version and priority (Linux/macOS)
       if: ${{ inputs.runner != 'windows-latest' }}
