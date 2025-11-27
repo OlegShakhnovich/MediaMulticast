@@ -20,14 +20,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-
-      - name: Pre-create LLVM directory
-        if: inputs.runner != 'windows-latest'
-        shell: bash
-        env:
-          LLVM_DIR: $HOME/.cache/llvm-${{ inputs.llvm_version }}
-        run: mkdir -p "$LLVM_DIR"
-
       - name: Cache LLVM
         uses: ./.github/actions/cache-llvm
         id: cache-llvm
@@ -45,20 +37,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget xz-utils
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
-          DEST="$HOME/.cache//llvm-${{ inputs.llvm_version }}"
-          mkdir -p "$DEST"
-          ls -la "$DEST" || echo "Directory not created"
-          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz -C "$DEST" --strip-components=1
+          tar -xf LLVM-${{ inputs.llvm_version }}-Linux-X64.tar.xz
+          mv LLVM-${{ inputs.llvm_version }}-Linux-X64 llvm
 
       - name: Download and extract LLVM on macOS
         if: ${{ inputs.runner == 'macos-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
         shell: bash
         run: |
           wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
-          DEST="$HOME/.cache/llvm-${{ inputs.llvm_version }}"
-          mkdir -p "$DEST"
-          ls -la "$DEST" || echo "Directory not created"
-          tar -xf LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz -C "$DEST" --strip-components=1
+          tar -xf LLVM-${{ inputs.llvm_version }}-macOS-ARM64.tar.xz
+          mv LLVM-${{ inputs.llvm_version }}-macOS-ARM64 llvm
           
       - name: Download and extract LLVM on Windows
         if: ${{ inputs.runner == 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
@@ -67,7 +55,7 @@ jobs:
           $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ inputs.llvm_version }}/clang+llvm-${{ inputs.llvm_version }}-x86_64-pc-windows-msvc.tar.xz"
           $archive = "llvm.tar.xz"
           Invoke-WebRequest -Uri $url -OutFile $archive
-          $dest = "$env:USERPROFILE/tools/LLVM"
+          $dest = "C:\LLVM"
           if (-Not (Test-Path $dest)) {
             New-Item -ItemType Directory -Force -Path $dest | Out-Null
           }
