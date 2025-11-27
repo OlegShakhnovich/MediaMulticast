@@ -59,6 +59,7 @@ jobs:
 
       - name: Generate compile_commands.json (MacOS)
         if: runner.os == 'macOS'
+        shell: bash
         run: |
           SYSROOT=$(xcrun --sdk macosx --show-sdk-path)
           cmake -G Ninja -S . -B build_tidy \
