@@ -65,6 +65,8 @@ jobs:
           -DCMAKE_CXX_STANDARD=20 \
           -DCMAKE_C_COMPILER=clang \
           -DCMAKE_CXX_COMPILER=clang++
+          -DCMAKE_OSX_SYSROOT=$(xcrun --sdk macosx --show-sdk-path)
+      
 
       - name: Find compilers
         run: |
