@@ -55,6 +55,13 @@ jobs:
           which ld.lld
           which ld64.lld
           ld.lld --version || true
+          which lld || true
+
+      - name: Check SDK (MacOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          xcrun --sdk macosx --show-sdk-path
 
 
       - name: Generate compile_commands.json (MacOS)
