@@ -25,7 +25,7 @@ runs:
       if: ${{ inputs.runner != 'windows-latest' }}
       shell: bash
       run: |
-        echo "${{ github.workspace }}/llvm" >> $GITHUB_PATH
+        echo "${{ github.workspace }}/llvm/bin" >> $GITHUB_PATH
 
 
     - name: Add LLVM to PATH on Windows

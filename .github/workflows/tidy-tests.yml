@@ -49,8 +49,8 @@ jobs:
           cmake -G Ninja -S . -B build_tidy_tests `
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
             -DCMAKE_CXX_STANDARD=20 `
-            -DCMAKE_C_COMPILER="$llvmBinPath\clang.exe" `
-            -DCMAKE_CXX_COMPILER="$llvmBinPath\clang++.exe" 
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=\clang++" 
 
 
       - name: Upload compile_commands.json
