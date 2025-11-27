@@ -123,12 +123,18 @@ jobs:
           Write-Host "=== CMake completed successfully ==="
 
 
+
       - name: Run clang-tidy on src/include (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
         run: |
           any_error=false
-          find src include -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \) | while IFS= read -r f; do
+          files=()
+          while IFS= read -r f; do
+            files+=("$f")
+          done < <(find src include -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
+
+          for f in "${files[@]}"; do
             echo "Checking: $f"
             if clang-tidy -config-file=.clang-tidy -p build_tidy "$f"; then
               echo "No issues found in: $f"
@@ -137,7 +143,7 @@ jobs:
               any_error=true
             fi
           done
-    
+
           if [ "$any_error" = true ]; then
             echo "clang-tidy found issues in one or more files. Job failed."
             exit 1
