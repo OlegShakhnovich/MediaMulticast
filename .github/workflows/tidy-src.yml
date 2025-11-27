@@ -63,19 +63,8 @@ jobs:
           cmake -G Ninja -S . -B build_tidy \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DCMAKE_CXX_STANDARD=20 \
-          -DCMAKE_CXX_EXTENSIONS=OFF \
-          \
-          -DCMAKE_C_COMPILER="$GITHUB_WORKSPACE/llvm/bin/clang" \
-          -DCMAKE_CXX_COMPILER="$GITHUB_WORKSPACE/llvm/bin/clang++" \
-          -DCMAKE_LINKER="$GITHUB_WORKSPACE/llvm/bin/ld64.lld" \
-          -DCMAKE_AR="$GITHUB_WORKSPACE/llvm/bin/llvm-ar" \
-          -DCMAKE_RANLIB="$GITHUB_WORKSPACE/llvm/bin/llvm-ranlib" \
-          \
-          -DCMAKE_C_FLAGS=""  \
-          -DCMAKE_CXX_FLAGS=" -nostdinc++ -nostdinc -isystem $GITHUB_WORKSPACE/llvm/include/c++/v1 " \
-          \
-          -DCMAKE_EXE_LINKER_FLAGS=" -L$GITHUB_WORKSPACE/llvm/lib -lc++ -lc++abi -lunwind " \
-          -DCMAKE_SHARED_LINKER_FLAGS=" -L$GITHUB_WORKSPACE/llvm/lib -lc++ -lc++abi -lunwind "
+          -DCMAKE_C_COMPILER=clang \
+          -DCMAKE_CXX_COMPILER=clang++
 
       - name: Find compilers
         run: |
