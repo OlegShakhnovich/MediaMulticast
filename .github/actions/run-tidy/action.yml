@@ -4,8 +4,10 @@ description: Unified clang-tidy execution step for Linux/macOS/Windows
 inputs:
   build_dir:
     required: true
+    description: 'Path to the build directory containing compile_commands.json'
   config_path:
     required: true
+    description: 'Path to the clang-tidy configuration file'
 
 runs:
   using: "composite"
@@ -43,22 +45,50 @@ runs:
         $json = Join-Path "${{ inputs.build_dir }}" "compile_commands.json"
         Get-Content $json | ConvertFrom-Json | ForEach-Object { $_.file } | Sort-Object
 
+
+    - name: Debug clang-tidy version (Linux/macOS)
+      shell: bash
+      if: runner.os != 'Windows'
+      run: |
+        echo "Clang-tidy version:"
+        clang-tidy --version
+        echo "Checking for -j flag support:"
+        clang-tidy --help | grep -E "\s-j\s" || echo "-j flag not found in help"
+
+    - name: Debug clang-tidy version (Windows)
+      shell: pwsh
+      if: runner.os == 'Windows'
+      run: |
+        Write-Host "Clang-tidy version:"
+        clang-tidy --version
+        Write-Host "Checking for -j flag support:"
+        clang-tidy --help | Select-String "\s-j\s" | ForEach-Object { Write-Host "Found: $_" }
+
     - name: Run clang-tidy (Linux/macOS)
       shell: bash
       if: runner.os != 'Windows'
       run: |
-        cores=$(nproc)
-        clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" -j "$cores"
+        if clang-tidy --help | grep -qE "\s-j\s"; then
+          echo "Using parallel execution with -j flag"
+          cores=$(nproc)
+          clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" -j "$cores"
+        else
+          echo "Using sequential execution (no -j flag support)"
+          clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}"
+        fi
         exit $?
 
     - name: Run clang-tidy (Windows)
       shell: pwsh
       if: runner.os == 'Windows'
       run: |
-        $cores = $env:NUMBER_OF_PROCESSORS
-        & clang-tidy `
-          -config-file "${{ inputs.config_path }}" `
-          -p "${{ inputs.build_dir }}" `
-          --extra-arg-before=--driver-mode=cl `
-          -j $cores
+        $supportsJ = clang-tidy --help | Select-String "\s-j\s"
+        if ($supportsJ) {
+          Write-Host "Using parallel execution with -j flag"
+          $cores = $env:NUMBER_OF_PROCESSORS
+          clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" --extra-arg-before=--driver-mode=cl -j $cores
+        } else {
+          Write-Host "Using sequential execution (no -j flag support)"
+          clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" --extra-arg-before=--driver-mode=cl
+        }
         exit $LASTEXITCODE
