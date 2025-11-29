@@ -1,0 +1,64 @@
+name: Run tidy
+description: Unified clang-tidy execution step for Linux/macOS/Windows
+
+inputs:
+  build_dir:
+    required: true
+  config_path:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Verify compile_commands.json present
+      shell: bash
+      if: runner.os != 'Windows'
+      run: |
+        file="${{ inputs.build_dir }}/compile_commands.json"
+        if [ ! -s "$file" ]; then
+          echo "compile_commands.json missing or empty"
+          exit 1
+        fi
+
+    - name: Verify compile_commands.json present (Windows)
+      shell: pwsh
+      if: runner.os == 'Windows'
+      run: |
+        $file = Join-Path "${{ inputs.build_dir }}" "compile_commands.json"
+        if (-not (Test-Path $file)) {
+          Write-Error "compile_commands.json missing"
+          exit 1
+        }
+
+    - name: List translation units
+      shell: bash
+      if: runner.os != 'Windows'
+      run: |
+        jq -r ".[].file" "${{ inputs.build_dir }}/compile_commands.json" | sort
+
+    - name: List translation units (Windows)
+      shell: pwsh
+      if: runner.os == 'Windows'
+      run: |
+        $json = Join-Path "${{ inputs.build_dir }}" "compile_commands.json"
+        Get-Content $json | ConvertFrom-Json | ForEach-Object { $_.file } | Sort-Object
+
+    - name: Run clang-tidy (Linux/macOS)
+      shell: bash
+      if: runner.os != 'Windows'
+      run: |
+        cores=$(nproc)
+        clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" -j "$cores"
+        exit $?
+
+    - name: Run clang-tidy (Windows)
+      shell: pwsh
+      if: runner.os == 'Windows'
+      run: |
+        $cores = $env:NUMBER_OF_PROCESSORS
+        & clang-tidy `
+          -config-file "${{ inputs.config_path }}" `
+          -p "${{ inputs.build_dir }}" `
+          --extra-arg-before=--driver-mode=cl `
+          -j $cores
+        exit $LASTEXITCODE
