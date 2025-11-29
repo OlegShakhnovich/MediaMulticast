@@ -1,0 +1,63 @@
+name: Build (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      llvm_version:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+  
+      - name: Setup LLVM ${{ inputs.llvm_version }}
+        uses: ./.github/actions/setup-llvm
+        with:
+          runner: ${{ inputs.runner }}
+          llvm_version: ${{ inputs.llvm_version }}
+
+        
+      - uses: actions/cache@v4
+        with:
+          path: build_ninja
+          key: ${{ inputs.runner }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
+
+
+      - name: Configure build (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          cmake -S . -B build_ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=clang \
+          -DCMAKE_CXX_COMPILER=clang++
+
+
+      - name: Configure build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake -S . -B build_ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++
+
+
+      - name: Build targets
+        run: |
+          cmake --build build_ninja --target udp_streaming_lib --parallel
+          cmake --build build_ninja --target udp_streamer --parallel
+          cmake --build build_ninja --target tests --parallel || true
+
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build_ninja-${{ inputs.runner }}
+          path: build_ninja

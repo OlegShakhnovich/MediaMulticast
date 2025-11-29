@@ -14,7 +14,8 @@
 #include <string_view>
 #include <utility>
 
-enum class LogLevel : uint8_t {
+enum class LogLevel : uint8_t 
+{
     TRACE = 0,
     DEBUG,
     INFO,
@@ -29,8 +30,8 @@ public:
     using Sink = std::function<void(std::string)>;
 
     Logger() noexcept
-        : sink([](std::string msg) noexcept -> void {
-              std::cout << std::forward<decltype(msg)>(msg);
+        : sink([](const std::string& msg) -> void {
+              std::cout << msg;
           }) {}
 
     void setLevel(LogLevel level) noexcept {
