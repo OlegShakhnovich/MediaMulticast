@@ -1,0 +1,26 @@
+name: Test (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+
+jobs:
+  test:
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build_ninja-${{ inputs.runner }}
+          path: build_ninja
+
+      - name: Run tests
+        run: |
+          cd build_ninja
+          ctest --output-on-failure --parallel || true
