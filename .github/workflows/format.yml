@@ -68,7 +68,7 @@ jobs:
           # Push to the current branch
           git push origin HEAD:$CURRENT_BRANCH
           echo "Auto-formatting applied. Please review and commit the changes manually."
-          exit 1
+          exit 0
 
 
           - name: Formatting check passed

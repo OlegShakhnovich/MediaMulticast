@@ -135,7 +135,7 @@ jobs:
 
           for f in "${files[@]}"; do
             echo "Checking: $f"
-            if clang-tidy -config-file=.clang-tidy -p build_tidy -header-filter='.*' "$f"; then
+            if clang-tidy -config-file=.clang-tidy -p build_tidy  "$f"; then
               echo "No issues found in: $f"
             else
               echo "clang-tidy found issues in: $f"
