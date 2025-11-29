@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CI_PAT }}
 
 
       - name: Setup LLVM ${{ inputs.llvm_version }}
@@ -66,9 +66,9 @@ jobs:
           echo "Current branch: $CURRENT_BRANCH"
 
           # Push to the current branch
-          git push origin HEAD:$CURRENT_BRANCH
+          git push https://x-access-token:${{ secrets.CI_PAT }}@github.com/${GITHUB_REPOSITORY}.git HEAD:$CURRENT_BRANCH
           echo "Auto-formatting applied. Please review and commit the changes manually."
-          exit 0
+          exit 1
 
 
           - name: Formatting check passed
