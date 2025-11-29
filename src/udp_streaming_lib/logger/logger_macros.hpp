@@ -7,8 +7,7 @@
 
 #include "logger.hpp"
 
-namespace logsys
-{
+namespace logsys {
 
 // variable logger: builds "name = value" and logs with location
 template <LogLevel Lvl, typename T>
