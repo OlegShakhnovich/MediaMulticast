@@ -12,6 +12,7 @@ inputs:
 runs:
   using: "composite"
   steps:
+
     - name: Verify compile_commands.json present
       shell: bash
       if: runner.os != 'Windows'
@@ -32,35 +33,47 @@ runs:
           exit 1
         }
 
-    - name: List translation units
-      shell: bash
+    - name: Extract translation units (Linux/macOS)
       if: runner.os != 'Windows'
+      shell: bash
       run: |
-        jq -r ".[].file" "${{ inputs.build_dir }}/compile_commands.json" | sort
+        jq -r '.[].file' "${{ inputs.build_dir }}/compile_commands.json" > tu_list.txt
+        sort -o tu_list.txt tu_list.txt
+        echo "Translation units:"
+        cat tu_list.txt
 
-    - name: List translation units (Windows)
-      shell: pwsh
+    - name: Extract translation units (Windows)
       if: runner.os == 'Windows'
+      shell: pwsh
       run: |
         $json = Join-Path "${{ inputs.build_dir }}" "compile_commands.json"
-        Get-Content $json | ConvertFrom-Json | ForEach-Object { $_.file } | Sort-Object
+        (Get-Content $json | ConvertFrom-Json | ForEach-Object { $_.file }) |
+          Sort-Object |
+          Set-Content tu_list.txt
+        Write-Host "Translation units:"
+        Get-Content tu_list.txt
 
     - name: Run clang-tidy (Linux/macOS)
-      shell: bash
       if: runner.os != 'Windows'
+      shell: bash
       run: |
+        mapfile -t files < tu_list.txt
         clang-tidy \
           -config-file="${{ inputs.config_path }}" \
-          -p "${{ inputs.build_dir }}"
+          -p "${{ inputs.build_dir }}" \
+          "${files[@]}"
         exit $?
 
     - name: Run clang-tidy (Windows)
-      shell: pwsh
       if: runner.os == 'Windows'
+      shell: pwsh
       run: |
         $config = "${{ inputs.config_path }}"
+        $files = Get-Content tu_list.txt
         & clang-tidy `
           -config-file $config `
           -p "${{ inputs.build_dir }}" `
-          --extra-arg-before=--driver-mode=cl
+          --extra-arg-before=--driver-mode=cl `
+          $files
         exit $LASTEXITCODE
+
