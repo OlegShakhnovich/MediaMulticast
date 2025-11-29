@@ -60,15 +60,3 @@ jobs:
             New-Item -ItemType Directory -Force -Path $dest | Out-Null
           }
           tar -xf $archive -C $dest --strip-components=1
-
-
-      - name: Verify installation
-        run: |
-          echo "=== Checking clang version ==="
-          clang --version || echo "clang not found"
-          echo "=== Checking clang-tidy version ==="
-          clang-tidy --version || echo "clang-tidy not found"
-          echo "=== Checking clang-format version ==="
-          clang-format --version || echo "clang-format not found"
-          echo "=== Cache status ==="
-          echo "LLVM directory cache hit: ${{ steps.cache-llvm.outputs.cache-hit }}" || echo "No cache"

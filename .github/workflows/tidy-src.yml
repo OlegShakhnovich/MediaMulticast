@@ -23,22 +23,6 @@ jobs:
           runner: ${{ inputs.runner }}
           llvm_version: ${{ inputs.llvm_version }}
 
-      - name: Check llvm
-        run: |
-          clang --version || true
-          clang-format --version || true
-          clang-tidy --version || true
-
-      - name: Check actual LLVM version (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Get-Location 
-          Write-Host "Which clang-tidy is being used:"
-          Get-Command clang-tidy
-          Write-Host "Clang-tidy version:"
-          clang-tidy --version
-
 
       - name: Debug LLVM path on Windows
         if: runner.os == 'Windows'
@@ -49,19 +33,6 @@ jobs:
         with:
           path: build_tidy
           key: ${{ inputs.runner }}-tidy-src-${{ hashFiles('./src/**/*.cpp', './src/**/*.cc', './src/**/*.h', './src/**/*.hpp', './include/**/*.h', './include/**/*.hpp') }}
-
-      - name: Check LLD availability
-        run: |
-          which ld.lld
-          which ld64.lld
-          ld.lld --version || true
-          which lld || true
-
-      - name: Check SDK (MacOS)
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          xcrun --sdk macosx --show-sdk-path
 
 
       - name: Generate compile_commands.json (MacOS)
@@ -76,11 +47,6 @@ jobs:
           -DCMAKE_CXX_COMPILER=clang++ \
           -DCMAKE_OSX_SYSROOT="$SYSROOT"
       
-
-      - name: Find compilers
-        run: |
-          which clang
-          which clang++
             
       - name: Generate compile_commands.json (Linux)
         if: runner.os == 'Linux'
