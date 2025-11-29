@@ -14,8 +14,7 @@
 #include <string_view>
 #include <utility>
 
-enum class LogLevel : uint8_t 
-{
+enum class LogLevel : uint8_t {
     TRACE = 0,
     DEBUG,
     INFO,
