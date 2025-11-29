@@ -1,0 +1,121 @@
+name: Validate + Build + Test
+
+on:
+  push:
+    branches: ["develop"]
+  pull_request:
+    branches: ["develop"]
+
+permissions:
+  contents: write
+  checks: write
+  pull-requests: write
+
+jobs:
+
+  setup-llvm-cache-linux:
+    uses: ./.github/workflows/setup-llvm-cache.yml
+    with:
+      runner: ubuntu-latest
+      llvm_version: "21.1.6"
+
+  setup-llvm-cache-macos:
+    uses: ./.github/workflows/setup-llvm-cache.yml
+    with:
+      runner: macos-latest
+      llvm_version: "21.1.6"
+
+  setup-llvm-cache-windows:
+    uses: ./.github/workflows/setup-llvm-cache.yml
+    with:
+      runner: windows-latest
+      llvm_version: "21.1.6"
+
+  format-linux:
+    needs: setup-llvm-cache-linux
+    uses: ./.github/workflows/format.yml
+    with:
+      llvm_version: "21.1.6"
+    permissions:
+      contents: write
+
+  tidy-src-linux:
+    needs: setup-llvm-cache-linux
+    uses: ./.github/workflows/tidy-src.yml
+    with:
+      runner: ubuntu-latest
+      llvm_version: "21.1.6"
+
+  tidy-src-macos:
+    needs: setup-llvm-cache-macos
+    uses: ./.github/workflows/tidy-src.yml
+    with:
+      runner: macos-latest
+      llvm_version: "21.1.6"
+
+  tidy-src-windows:
+    needs: setup-llvm-cache-windows
+    uses: ./.github/workflows/tidy-src.yml
+    with:
+      runner: windows-latest
+      llvm_version: "21.1.6"
+
+  tidy-tests-linux:
+    needs: setup-llvm-cache-linux
+    uses: ./.github/workflows/tidy-tests.yml
+    with:
+      runner: ubuntu-latest
+      llvm_version: "21.1.6"
+
+  tidy-tests-macos:
+    needs: setup-llvm-cache-macos
+    uses: ./.github/workflows/tidy-tests.yml
+    with:
+      runner: macos-latest
+      llvm_version: "21.1.6"
+
+  tidy-tests-windows:
+    needs: setup-llvm-cache-windows
+    uses: ./.github/workflows/tidy-tests.yml
+    with:
+      runner: windows-latest
+      llvm_version: "21.1.6"
+
+  build-linux:
+    needs: setup-llvm-cache-linux
+    uses: ./.github/workflows/build.yml
+    with:
+      runner: ubuntu-latest
+      llvm_version: "21.1.6"
+
+  build-macos:
+    needs: setup-llvm-cache-macos
+    uses: ./.github/workflows/build.yml
+    with:
+      runner: macos-latest
+      llvm_version: "21.1.6"
+
+  build-windows:
+    needs: setup-llvm-cache-windows
+    uses: ./.github/workflows/build.yml
+    with:
+      runner: windows-latest
+      llvm_version: "21.1.6"
+
+  test-linux:
+    needs: [build-linux]
+    uses: ./.github/workflows/test.yml
+    with:
+      runner: ubuntu-latest
+
+  test-macos:
+    needs: [build-macos]
+    uses: ./.github/workflows/test.yml
+    with:
+      runner: macos-latest
+
+  test-windows:
+    needs: [build-windows]
+    uses: ./.github/workflows/test.yml
+    with:
+      runner: windows-latest
