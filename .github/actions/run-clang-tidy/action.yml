@@ -19,30 +19,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Prepare dummy .cpp files for headers (macOS)
-      if: runner.os == 'macOS'
-      shell: bash
-      run: |
-        set -e
-        dummy_dir="${{ inputs.build_dir }}/dummy_headers"
-        mkdir -p "$dummy_dir"
-
-        headers=(
-          "src/udp_streaming_lib/logger/logger.hpp"
-          "src/udp_streaming_lib/logger/logger_macros.hpp"
-          "src/udp_streaming_lib/file_reader/file_reader.hpp"
-          "src/udp_streaming_lib/queueing/queue.hpp"
-          "src/udp_streaming_lib/networking/udp_multicast.hpp"
-          "src/udp_streaming_lib/header_parser/header_parser.hpp"
-          "src/udp_streaming_lib/timed_streaming/timer.hpp"
-        )
-
-        for h in "${headers[@]}"; do
-          base=$(basename "$h" .hpp)
-          dummy="$dummy_dir/${base}_dummy.cpp"
-          echo "#include \"../../$h\"" > "$dummy"
-        done
-
     - name: Run clang-tidy (Linux/macOS)
       if: runner.os != 'Windows'
       shell: bash
@@ -50,10 +26,11 @@ runs:
         set +e
         any_error=false
 
+        # Expand all dirs
         dirs=(${{ inputs.source_dirs }})
-        files=$(find "${dirs[@]}" -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
 
-        files+=($(find "${{ inputs.build_dir }}/dummy_headers" -type f -name '*.cpp'))
+        files=$(find "${dirs[@]}" -type f \
+              \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
 
         for f in $files; do
           echo "Checking: $f"
@@ -91,4 +68,4 @@ runs:
 
         if ($anyError -and "${{ inputs.fail_on_error }}" -eq "true") {
           exit 1
-        fi
+        }
