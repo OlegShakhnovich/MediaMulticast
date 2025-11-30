@@ -42,6 +42,8 @@ runs:
           -DCMAKE_CXX_COMPILER="${{ inputs.cxx_compiler }}" \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
           -DCMAKE_OSX_SYSROOT="$SYSROOT" \
+          -DCMAKE_C_FLAGS="--sysroot=$SYSROOT -isysroot $SYSROOT" \
+          -DCMAKE_CXX_FLAGS="--sysroot=$SYSROOT -isysroot $SYSROOT" \
           -DBUILD_TESTS="${{ inputs.enable_tests }}"
 
 
