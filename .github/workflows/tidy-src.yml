@@ -29,6 +29,7 @@ jobs:
           build_dir: build_tidy
 
       - name: Patch compile_commands.json (macOS)
+        if: runner.os == 'macOS'
         uses: ./.github/actions/patch-compile-commands
         with:
           build_dir: build_tidy 

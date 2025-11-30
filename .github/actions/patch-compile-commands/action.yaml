@@ -13,13 +13,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.build_dir }}
       run: |
-        # Only macOS needs patch
-        if [ "$RUNNER_OS" != "macOS" ]; then
-          echo "Non-macOS: compile_commands.json left unchanged"
-          exit 0
-        fi
-
-        python3 << 'PY'
+        python3 <<'PY'
 import json, re
 
 with open("compile_commands.json") as f:
