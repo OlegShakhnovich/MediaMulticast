@@ -14,7 +14,7 @@ Checks: >
 
 WarningsAsErrors: '*'
 
-HeaderFilterRegex: './src/.*|./include/.*'
+HeaderFilterRegex: 'src/.*|include/.*'
 FormatStyle: file
 
 CheckOptions:
