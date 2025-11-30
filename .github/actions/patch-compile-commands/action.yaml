@@ -13,30 +13,22 @@ runs:
       shell: bash
       working-directory: ${{ inputs.build_dir }}
       run: |
-        python3 <<'PY'
-import json, re
+        FILE="compile_commands.json"
+        TMPFILE="$(mktemp)"
 
-with open("compile_commands.json") as f:
-    arr = json.load(f)
+        sed -E \
+          -e 's/-std=gnu\+\+20/-std=c++20/g' \
+          -e 's@-isysroot[[:space:]]+\S+@@g' \
+          -e 's@--sysroot=\S+@@g' \
+          -e 's@-mmacosx-version-min=\S+@@g' \
+          -e 's@-arch[[:space:]]+\S+@@g' \
+          -e 's@-stdlib=\S+@@g' \
+          -e 's@-Wl,-search_paths_first@@g' \
+          -e 's@-Wl,-headerpad_max_install_names@@g' \
+          "$FILE" > "$TMPFILE"
 
-strip_pat = re.compile(
-    r'(-isysroot\s+\S+|'
-    r'--sysroot=\S+|'
-    r'-mmacosx-version-min=\S+|'
-    r'-arch\s+\S+|'
-    r'-stdlib=\S+|'
-    r'-Wl,-search_paths_first|'
-    r'-Wl,-headerpad_max_install_names)'
-)
+        awk '{$1=$1; print}' "$TMPFILE" > "$FILE"
 
-for e in arr:
-    cmd = e["command"]
-    cmd = re.sub(r'-std=gnu\+\+20', '-std=c++20', cmd)
-    cmd = strip_pat.sub('', cmd)
-    cmd = " ".join(cmd.split())
-    e["command"] = cmd
+        rm -f "$TMPFILE"
 
-with open("compile_commands.json", "w") as f:
-    json.dump(arr, f, indent=2)
-PY
         echo "Patched compile_commands.json (macOS)"
