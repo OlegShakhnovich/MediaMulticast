@@ -28,6 +28,12 @@ jobs:
         with:
           build_dir: build_tidy
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build_tidy-${{ inputs.runner }}
+          path: build_tidy
+
       - name: Run clang-tidy
         uses: ./.github/actions/run-clang-tidy
         with:
