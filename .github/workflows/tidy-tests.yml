@@ -27,6 +27,7 @@ jobs:
         uses: ./.github/actions/generate-compile-commands
         with:
           build_dir: build_tidy_tests
+          enable_tests: "ON"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -41,4 +42,4 @@ jobs:
           source_dirs: "tests"
           config_path: "tests/.clang-tidy"
           fail_on_error: "false"
-          enable_tests: "ON"
+          
