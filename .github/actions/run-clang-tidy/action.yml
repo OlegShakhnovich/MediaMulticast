@@ -30,7 +30,7 @@ runs:
         dirs=(${{ inputs.source_dirs }})
 
         files=$(find "${dirs[@]}" -type f \
-              \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
+              \( -name '*.cpp' -o -name '*.cc' -o \))
 
         for f in $files; do
           echo "Checking: $f"
