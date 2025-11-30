@@ -28,6 +28,12 @@ jobs:
         with:
           build_dir: build_tidy_tests
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: compile_commands-tests-${{ inputs.runner }}
+          path: build_tidy_tests/compile_commands.json
+
       - name: Run clang-tidy
         uses: ./.github/actions/run-clang-tidy
         with:

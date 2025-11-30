@@ -31,8 +31,8 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build_tidy-${{ inputs.runner }}
-          path: build_tidy
+          name: compile_commands-src-${{ inputs.runner }}
+          path: build_tidy/compile_commands.json
 
       - name: Run clang-tidy
         uses: ./.github/actions/run-clang-tidy
