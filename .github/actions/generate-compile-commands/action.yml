@@ -39,8 +39,8 @@ runs:
           -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
           -DCMAKE_C_FLAGS="-fdeclspec" \
           -DCMAKE_CXX_FLAGS="-fdeclspec" \
-          -DCMAKE_C_FLAGS="-fdeclspec -Wno-unknown-warning-option -Wno-nullability-completeness" \
-          -DCMAKE_CXX_FLAGS="-fdeclspec -Wno-unknown-warning-option -Wno-nullability-completeness" \
+          -DCMAKE_C_FLAGS="-fdeclspec -Wno-nullability-completeness -Wno-unknown-warning-option" \
+          -DCMAKE_CXX_FLAGS="-fdeclspec -Wno-nullability-completeness -Wno-unknown-warning-option" \
           -DCMAKE_OSX_SYSROOT="$SYSROOT" 
 
 
