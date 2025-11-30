@@ -29,10 +29,55 @@ jobs:
           build_dir: build_tidy
           source_dirs: "src include"
 
-      - name: Run clang-tidy
-        uses: ./.github/actions/run-clang-tidy
-        with:
-          build_dir: build_tidy
-          source_dirs: "src include"
-          config_path: ".clang-tidy"
-          fail_on_error: "true"
+      - name: Run clang-tidy on src/include (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          any_error=false
+          files=()
+          while IFS= read -r f; do
+            files+=("$f")
+          done < <(find src include -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
+
+          for f in "${files[@]}"; do
+            echo "Checking: $f"
+            if clang-tidy -config-file=.clang-tidy -p build_tidy -header-filter='.*' "$f"; then
+              echo "No issues found in: $f"
+            else
+              echo "clang-tidy found issues in: $f"
+              any_error=true
+            fi
+          done
+
+          if [ "$any_error" = true ]; then
+            echo "clang-tidy found issues in one or more files. Job failed."
+            exit 1
+          else
+            echo "clang-tidy completed successfully - no issues found in any files."
+          fi
+       
+      - name: Run clang-tidy on src/include (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |    
+          $config = Join-Path $PWD ".clang-tidy"    
+          $files = Get-ChildItem -Recurse src,include -Include *.cpp,*.cc,*.h,*.hpp
+          $anyError = $false
+    
+          foreach ($f in $files) {
+            Write-Host "Checking: $($f.FullName)"
+            & clang-tidy -config-file "$config" -p build_tidy $f.FullName
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "clang-tidy found issues in: $($f.FullName)" -ForegroundColor Red
+              $anyError = $true
+            } else {
+              Write-Host "No issues found in: $($f.FullName)"
+            }
+          }
+    
+          if ($anyError) {
+            Write-Error "clang-tidy found issues in one or more files. Job failed."
+            exit 1
+          } else {
+            Write-Host "clang-tidy completed successfully - no issues found in any files."
+          }
