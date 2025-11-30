@@ -30,21 +30,13 @@ runs:
       if: runner.os == 'macOS'
       shell: bash
       run: |
-        SYSROOT="${{ inputs.sysroot }}"
-        if [ -z "$SYSROOT" ]; then
-          SYSROOT=$(xcrun --sdk macosx --show-sdk-path)
-        fi
-
         cmake -G Ninja -S . -B "${{ inputs.build_dir }}" \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DCMAKE_CXX_STANDARD=20 \
           -DCMAKE_C_COMPILER="${{ inputs.compiler }}" \
           -DCMAKE_CXX_COMPILER="${{ inputs.cxx_compiler }}" \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
-          -DCMAKE_OSX_SYSROOT="$SYSROOT" \
-          -DCMAKE_C_FLAGS="--sysroot=$SYSROOT -isysroot $SYSROOT" \
-          -DCMAKE_CXX_FLAGS="--sysroot=$SYSROOT -isysroot $SYSROOT" \
-          -DCMAKE_CXX_EXTENSIONS=OFF \
+          -DCMAKE_C_FLAGS="-fPIC -Wall -Wextra -pedantic" \
+          -DCMAKE_CXX_FLAGS="-fPIC -Wall -Wextra -pedantic" \
           -DBUILD_TESTS="${{ inputs.enable_tests }}"
 
 
