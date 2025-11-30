@@ -27,11 +27,11 @@ jobs:
         uses: ./.github/actions/generate-compile-commands
         with:
           build_dir: build_tidy
-          source_dirs: "src include"
 
       - name: Run clang-tidy
         uses: ./.github/actions/run-clang-tidy
         with:
           build_dir: build_tidy
+          source_dirs: "src include"
           config_path: ".clang-tidy"
           fail_on_error: "true"
