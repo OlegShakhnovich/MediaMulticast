@@ -44,6 +44,7 @@ runs:
           -DCMAKE_OSX_SYSROOT="$SYSROOT" \
           -DCMAKE_C_FLAGS="--sysroot=$SYSROOT -isysroot $SYSROOT" \
           -DCMAKE_CXX_FLAGS="--sysroot=$SYSROOT -isysroot $SYSROOT" \
+          -DCMAKE_CXX_EXTENSIONS=OFF \
           -DBUILD_TESTS="${{ inputs.enable_tests }}"
 
 
