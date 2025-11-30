@@ -28,4 +28,4 @@ runs:
     - name: Configure CMake
       shell: pwsh
       run: |
-        cmake -G Ninja -S . -B "${{ inputs.build_dir }}" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_STANDARD=20 -DCMAKE_C_COMPILER="${{ inputs.compiler }}" -DCMAKE_CXX_COMPILER="${{ inputs.cxx_compiler }}"-DBUILD_TESTS="${{ inputs.enable_tests }}"
+        cmake -G Ninja -S . -B "${{ inputs.build_dir }}" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_STANDARD=20 -DCMAKE_C_COMPILER="${{ inputs.compiler }}" -DCMAKE_CXX_COMPILER="${{ inputs.cxx_compiler }}" -DBUILD_TESTS="${{ inputs.enable_tests }}"
