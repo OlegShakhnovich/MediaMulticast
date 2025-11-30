@@ -19,21 +19,21 @@ runs:
       if: runner.os != 'Windows'
       shell: bash
       run: |
+        set +e
         any_error=false
 
-        IFS=' ' read -r -a dirs <<< "${{ inputs.source_dirs }}"
+        # Expand all dirs
+        dirs=(${{ inputs.source_dirs }})
 
-        files=()
-        for d in "${dirs[@]}"; do
-          while IFS= read -r f; do
-            files+=("$f")
-          done < <(find "$d" -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
-        done
+        files=$(find "${dirs[@]}" -type f \
+              \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
 
-        for f in "${files[@]}"; do
+        for f in $files; do
           echo "Checking: $f"
-          clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" -header-filter='.*' "$f"
-          if [ $? -ne 0 ]; then
+          if clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" -header-filter='.*' "$f"; then
+            echo "OK: $f"
+          else
+            echo "FAIL: $f"
             any_error=true
           fi
         done
