@@ -39,6 +39,10 @@ runs:
             -p "${{ inputs.build_dir }}" \
             -header-filter='src/.*|include/.*' \
             --system-headers=false \
+            -extra-arg=-D_WIN32=0 \
+            -extra-arg=-D__APPLE__=1 \
+            -extra-arg=-fms-extensions \
+            -extra-arg=-std=gnu++20 \
             "$f"; then
             echo "OK: $f"
           else
