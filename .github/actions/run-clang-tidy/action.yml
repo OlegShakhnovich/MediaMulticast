@@ -29,8 +29,8 @@ runs:
         # Expand all dirs
         dirs=(${{ inputs.source_dirs }})
 
-        files=$(find "${dirs[@]}" -type f \
-              \( -name '*.cpp' -o -name '*.cc' \))
+        # Find only .cpp and .cc files
+        files=$(find "${dirs[@]}" -type f \( -name '*.cpp' -o -name '*.cc' \))
 
         for f in $files; do
           echo "Checking: $f"
@@ -39,8 +39,6 @@ runs:
             -p "${{ inputs.build_dir }}" \
             -header-filter='src/.*|include/.*' \
             --system-headers=false \
-            -extra-arg=-D_WIN32=0 \
-            -extra-arg=-D__APPLE__=1 \
             "$f"; then
             echo "OK: $f"
           else
