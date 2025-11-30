@@ -36,8 +36,8 @@ runs:
           -DCMAKE_C_COMPILER="${{ inputs.compiler }}" \
           -DCMAKE_C_COMPILER_TARGET=arm64-apple-macosx15.0 \
           -DCMAKE_CXX_COMPILER_TARGET=arm64-apple-macosx15.0 \
-          -DCMAKE_C_FLAGS="-fdeclspec" \
-          -DCMAKE_CXX_FLAGS="-fdeclspec" \
+          -DCMAKE_C_FLAGS="-fdeclspec -fapple-kext" \
+          -DCMAKE_CXX_FLAGS="-fdeclspec -fapple-kext" \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
           -DCMAKE_CXX_COMPILER="${{ inputs.cxx_compiler }}"
 
