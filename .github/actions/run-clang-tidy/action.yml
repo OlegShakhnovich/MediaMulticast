@@ -34,7 +34,14 @@ runs:
 
         for f in $files; do
           echo "Checking: $f"
-          if clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" -header-filter='src/.*|include/.*' --system-headers=false "$f"; then
+          if clang-tidy \
+            -config-file="${{ inputs.config_path }}" \
+            -p "${{ inputs.build_dir }}" \
+            -header-filter='src/.*|include/.*' \
+            --system-headers=false \
+            -extra-arg=-D_WIN32=0 \
+            -extra-arg=-D__APPLE__=1 \
+            "$f"; then
             echo "OK: $f"
           else
             echo "FAIL: $f"
