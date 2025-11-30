@@ -1,0 +1,49 @@
+name: Patch compile_commands.json for clang-tidy (macOS)
+description: Normalize compile_commands.json across OS; patch macOS only
+
+inputs:
+  build_dir:
+    required: true
+    description: "Directory containing compile_commands.json"
+
+runs:
+  using: composite
+  steps:
+    - name: Patch compile_commands.json (in-place)
+      shell: bash
+      working-directory: ${{ inputs.build_dir }}
+      run: |
+        # Only macOS needs patch
+        if [ "$RUNNER_OS" != "macOS" ]; then
+          echo "Non-macOS: compile_commands.json left unchanged"
+          exit 0
+        fi
+
+        python3 << 'PY'
+import json, re
+
+with open("compile_commands.json") as f:
+    arr = json.load(f)
+
+strip_pat = re.compile(
+    r'(-isysroot\s+\S+|'
+    r'--sysroot=\S+|'
+    r'-mmacosx-version-min=\S+|'
+    r'-arch\s+\S+|'
+    r'-stdlib=\S+|'
+    r'-Wl,-search_paths_first|'
+    r'-Wl,-headerpad_max_install_names)'
+)
+
+for e in arr:
+    cmd = e["command"]
+    cmd = re.sub(r'-std=gnu\+\+20', '-std=c++20', cmd)
+    cmd = strip_pat.sub('', cmd)
+    cmd = " ".join(cmd.split())
+    e["command"] = cmd
+
+with open("compile_commands.json", "w") as f:
+    json.dump(arr, f, indent=2)
+PY
+
+        echo "Patched compile_commands.json (macOS)"
