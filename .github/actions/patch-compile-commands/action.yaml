@@ -39,5 +39,4 @@ for e in arr:
 with open("compile_commands.json", "w") as f:
     json.dump(arr, f, indent=2)
 PY
-
         echo "Patched compile_commands.json (macOS)"
