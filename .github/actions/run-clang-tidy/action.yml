@@ -26,15 +26,19 @@ runs:
         set +e
         any_error=false
 
-        # Expand all dirs
         dirs=(${{ inputs.source_dirs }})
-
-        files=$(find "${dirs[@]}" -type f \
-              \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
+        files=$(find "${dirs[@]}" -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
 
         for f in $files; do
           echo "Checking: $f"
-          if clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" -header-filter='.*' "$f"; then
+          if clang-tidy \
+               -config-file="${{ inputs.config_path }}" \
+               -p "${{ inputs.build_dir }}" \
+               -header-filter='.*' \
+               -extra-arg=-isysroot -extra-arg=$(xcrun --sdk macosx --show-sdk-path) \
+               -extra-arg=-stdlib -extra-arg=libc++ \
+               -extra-arg=-std=c++20 \
+               "$f"; then
             echo "OK: $f"
           else
             echo "FAIL: $f"
@@ -45,6 +49,7 @@ runs:
         if [ "$any_error" = true ] && [ "${{ inputs.fail_on_error }}" = "true" ]; then
           exit 1
         fi
+
 
     - name: Run clang-tidy (Windows)
       if: runner.os == 'Windows'
