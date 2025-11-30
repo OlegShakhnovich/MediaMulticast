@@ -4,13 +4,17 @@ description: Executes clang-tidy recursively on selected directories
 inputs:
   build_dir:
     required: true
+    description: "Directory containing compile_commands.json"
   source_dirs:
     required: true
+    description: "Space-separated list of directories to scan recursively for source files"
   config_path:
     required: true
+    description: "Path to .clang-tidy config file"
   fail_on_error:
     required: false
     default: "true"
+    description: "If true, exit with error when clang-tidy finds issues"
 
 runs:
   using: composite
