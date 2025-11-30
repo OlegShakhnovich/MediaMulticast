@@ -1,5 +1,5 @@
 name: Patch compile_commands.json for clang-tidy (macOS)
-description: Normalize compile_commands.json across OS; patch macOS only
+description: Make compile_commands.json clean for clang-tidy using bash
 
 inputs:
   build_dir:
@@ -13,22 +13,20 @@ runs:
       shell: bash
       working-directory: ${{ inputs.build_dir }}
       run: |
-        FILE="compile_commands.json"
-        TMPFILE="$(mktemp)"
+        SRC="compile_commands.json"
+        TMP="${SRC}.tmp"
 
-        sed -E \
-          -e 's/-std=gnu\+\+20/-std=c++20/g' \
-          -e 's@-isysroot[[:space:]]+\S+@@g' \
-          -e 's@--sysroot=\S+@@g' \
-          -e 's@-mmacosx-version-min=\S+@@g' \
-          -e 's@-arch[[:space:]]+\S+@@g' \
-          -e 's@-stdlib=\S+@@g' \
-          -e 's@-Wl,-search_paths_first@@g' \
-          -e 's@-Wl,-headerpad_max_install_names@@g' \
-          "$FILE" > "$TMPFILE"
+        # Remove system flags and leave only compiler, -std=c++20, and project -I paths
+        jq '.[] | .command |= (
+          split(" ") |
+          map(select(
+            test("^-I") and (test("src") or test("include"))
+          ) or (. == (.[0]) ) or (. == "-std=gnu++20")
+        ) | 
+        map(if . == "-std=gnu++20" then "-std=c++20" else . end) |
+        join(" ")
+        )' "$SRC" > "$TMP"
 
-        awk '{$1=$1; print}' "$TMPFILE" > "$FILE"
+        mv "$TMP" "$SRC"
 
-        rm -f "$TMPFILE"
-
-        echo "Patched compile_commands.json (macOS)"
+        echo "Patched compile_commands.json (macOS): system includes removed, only project headers remain"
