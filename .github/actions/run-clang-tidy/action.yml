@@ -11,10 +11,6 @@ inputs:
   config_path:
     required: true
     description: "Path to .clang-tidy config file"
-  fail_on_error:
-    required: false
-    default: "true"
-    description: "If true, exit with error when clang-tidy finds issues"
 
 runs:
   using: composite
@@ -29,19 +25,12 @@ runs:
         # Expand all dirs
         dirs=(${{ inputs.source_dirs }})
 
-        # Find only .cpp and .cc files
-        files=$(find "${dirs[@]}" -type f \( -name '*.cpp' -o -name '*.cc' \))
+        files=$(find "${dirs[@]}" -type f \
+              \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
 
         for f in $files; do
           echo "Checking: $f"
-          if clang-tidy \
-            -config-file="${{ inputs.config_path }}" \
-            -p "${{ inputs.build_dir }}" \
-            --header-filter='src/.*|include/.*' \
-            --system-headers=false \
-            -extra-arg=-D_WIN32=0 \
-            -extra-arg=-fms-extensions \
-            "$f"; then
+          if clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" -header-filter='.*' "$f"; then
             echo "OK: $f"
           else
             echo "FAIL: $f"

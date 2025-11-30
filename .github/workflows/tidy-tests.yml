@@ -41,5 +41,4 @@ jobs:
           build_dir: build_tidy_tests
           source_dirs: "tests"
           config_path: "tests/.clang-tidy"
-          fail_on_error: "false"
           
