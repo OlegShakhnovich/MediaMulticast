@@ -20,7 +20,7 @@ runs:
   using: composite
   steps:
     - name: Prepare dummy .cpp files for headers (macOS)
-      if: runner.os != 'Windows'
+      if: runner.os == 'macOS'
       shell: bash
       run: |
         set -e
