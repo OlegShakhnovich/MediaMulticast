@@ -1,0 +1,67 @@
+name: Run clang-tidy on directories
+description: Executes clang-tidy recursively on selected directories
+
+inputs:
+  build_dir:
+    required: true
+  source_dirs:
+    required: true
+  config_path:
+    required: true
+  fail_on_error:
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Run clang-tidy (Linux/macOS)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        set +e
+        any_error=false
+
+        # Expand all dirs
+        dirs=(${{ inputs.source_dirs }})
+
+        files=$(find "${dirs[@]}" -type f \
+              \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
+
+        for f in $files; do
+          echo "Checking: $f"
+          if clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" "$f"; then
+            echo "OK: $f"
+          else
+            echo "FAIL: $f"
+            any_error=true
+          fi
+        done
+
+        if [ "$any_error" = true ] && [ "${{ inputs.fail_on_error }}" = "true" ]; then
+          exit 1
+        fi
+
+    - name: Run clang-tidy (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $anyError = $false
+
+        $dirs = "${{ inputs.source_dirs }}".Split(" ")
+
+        $files = foreach ($d in $dirs) {
+          Get-ChildItem -Recurse $d -Include *.cpp,*.cc,*.h,*.hpp
+        }
+
+        foreach ($f in $files) {
+          Write-Host "Checking: $($f.FullName)"
+          & clang-tidy -config-file "${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" $f.FullName
+          if ($LASTEXITCODE -ne 0) {
+            $anyError = $true
+          }
+        }
+
+        if ($anyError -and "${{ inputs.fail_on_error }}" -eq "true") {
+          exit 1
+        }

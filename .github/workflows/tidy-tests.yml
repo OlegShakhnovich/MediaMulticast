@@ -16,59 +16,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-  
 
-      - name: Setup LLVM ${{ inputs.llvm_version }}
+      - name: Setup LLVM
         uses: ./.github/actions/setup-llvm
         with:
           runner: ${{ inputs.runner }}
           llvm_version: ${{ inputs.llvm_version }}
-        
-    
-      - name: Generate compile_commands.json (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          cmake -G Ninja -S . -B build_tidy_tests \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DCMAKE_CXX_STANDARD=20 \
-            -DCMAKE_C_COMPILER=clang \
-            -DCMAKE_CXX_COMPILER=clang++
-      
 
-      - name: Generate compile_commands.json (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          cmake -G Ninja -S . -B build_tidy_tests `
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
-            -DCMAKE_CXX_STANDARD=20 `
-            -DCMAKE_C_COMPILER=clang `
-            -DCMAKE_CXX_COMPILER=clang++ 
-
-
-      - name: Upload compile_commands.json
-        uses: actions/upload-artifact@v4
+      - name: Generate compile_commands.json
+        uses: ./.github/actions/generate-compile-commands
         with:
-          name: compile_commands-tests-${{ inputs.runner }}
-          path: build_tidy_tests/compile_commands.json
+          build_dir: build_tidy_tests
+          source_dirs: "tests"
 
-
-      - name: Run clang-tidy on tests (Linux/macOS)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          files=$(find tests -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
-          for f in $files; do
-            clang-tidy -config-file=tests/.clang-tidy -p build_tidy_tests "$f"
-          done
-
-          
-      - name: Run clang-tidy on tests (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |  
-          $config = Join-Path $PWD "tests/.clang-tidy"    
-          $files = Get-ChildItem -Recurse tests -Include *.cpp,*.cc,*.h,*.hpp
-          foreach ($f in $files) {
-            & clang-tidy -config-file "$config" -p build_tidy_tests $f.FullName
-          }
+      - name: Run clang-tidy
+        uses: ./.github/actions/run-clang-tidy
+        with:
+          build_dir: build_tidy_tests
+          source_dirs: "tests"
+          config_path: "tests/.clang-tidy"
+          fail_on_error: "false"
