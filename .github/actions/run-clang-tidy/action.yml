@@ -39,6 +39,7 @@ runs:
             -p "${{ inputs.build_dir }}" \
             --header-filter='src/.*|include/.*' \
             --system-headers=false \
+            -extra-arg=-fms-extensions \
             "$f"; then
             echo "OK: $f"
           else
