@@ -27,7 +27,6 @@ jobs:
         uses: ./.github/actions/generate-compile-commands
         with:
           build_dir: build_tidy_tests
-          source_dirs: "tests"
 
       - name: Run clang-tidy
         uses: ./.github/actions/run-clang-tidy

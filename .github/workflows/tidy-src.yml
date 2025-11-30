@@ -82,14 +82,9 @@ jobs:
         shell: bash
         run: |
           any_error=false
-          files=()
-          while IFS= read -r f; do
-            files+=("$f")
-          done < <(find src include -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
-
-          for f in "${files[@]}"; do
+          find src include -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \) | while IFS= read -r f; do
             echo "Checking: $f"
-            if clang-tidy -config-file=.clang-tidy -p build_tidy -header-filter='.*' "$f"; then
+            if clang-tidy -config-file=.clang-tidy -p build_tidy "$f"; then
               echo "No issues found in: $f"
             else
               echo "clang-tidy found issues in: $f"
