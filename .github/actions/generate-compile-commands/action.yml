@@ -24,7 +24,7 @@ inputs:
 runs:
   using: composite
   steps:
-   
+    
 
     - name: Configure CMake (macOS)
       if: runner.os == 'macOS'
@@ -66,3 +66,20 @@ runs:
           -DCMAKE_C_COMPILER="${{ inputs.compiler }}" `
           -DCMAKE_CXX_COMPILER="${{ inputs.cxx_compiler }}" `
           -DBUILD_TESTS="${{ inputs.enable_tests }}"
+
+
+    - name: Check tools on macOS
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        echo "Checking CMake version:"
+        cmake --version
+        echo "Checking Ninja version:"
+        ninja --version
+        echo "Checking compiler versions:"
+        "${{ inputs.compiler }}" --version
+        "${{ inputs.cxx_compiler }}" --version
+        xcrun --sdk macosx --show-sdk-path
+        xcrun --sdk macosx --show-sdk-version
+        clang++ -v -E -dM -x c++ /dev/null | grep MAC_OS_X_VERSION
+        cmake -LAH build_tidy | grep CMAKE_OSX
