@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #ifdef UDP_STREAMING_LIB_EXPORTS
 #define UDP_STREAMING_LIB_API __declspec(dllexport)
 #else

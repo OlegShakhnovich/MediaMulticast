@@ -20,14 +20,6 @@ if (MSVC)
 endif()
 
 
-find_program(CLANG_TIDY_EXE NAMES clang-tidy)
-if(CLANG_TIDY_EXE AND NOT MSVC)
-    message(STATUS "Enabling clang-tidy: ${CLANG_TIDY_EXE}")
-    set(CLANG_TIDY_COMMAND "${CLANG_TIDY_EXE};--config-file=${CMAKE_SOURCE_DIR}/.clang-tidy")
-    set_target_properties(udp_streaming_lib PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
-    set_target_properties(udp_streamer PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
-endif()
-
 # ------------------------------------------------------------
 # Optional examples
 # ------------------------------------------------------------
