@@ -1,5 +1,5 @@
 name: Patch compile_commands.json for clang-tidy (macOS)
-description: Make compile_commands.json clean for clang-tidy using bash
+description: Ensure compile_commands.json is usable for clang-tidy on macOS
 
 inputs:
   build_dir:
@@ -13,20 +13,13 @@ runs:
       shell: bash
       working-directory: ${{ inputs.build_dir }}
       run: |
-        SRC="compile_commands.json"
-        TMP="${SRC}.tmp"
 
-        # Remove system flags and leave only compiler, -std=c++20, and project -I paths
-        jq '.[] | .command |= (
-          split(" ") |
-          map(select(
-            test("^-I") and (test("src") or test("include"))
-          ) or (. == (.[0]) ) or (. == "-std=gnu++20")
-        ) | 
-        map(if . == "-std=gnu++20" then "-std=c++20" else . end) |
-        join(" ")
-        )' "$SRC" > "$TMP"
+        FILE="compile_commands.json"
+        TMP_FILE="${FILE}.tmp"
 
-        mv "$TMP" "$SRC"
+        # Ensure paths are absolute or fix relative paths
+        jq 'map(
+          .command |= gsub("BUILD_DIR_PLACEHOLDER"; "'"${PWD}"'")
+        )' "$FILE" > "$TMP_FILE" && mv "$TMP_FILE" "$FILE"
 
-        echo "Patched compile_commands.json (macOS): system includes removed, only project headers remain"
+        echo "Patched compile_commands.json for macOS (paths fixed, flags preserved)"
