@@ -7,14 +7,14 @@ inputs:
     description: "Directory containing compile_commands.json"
   source_dirs:
     required: true
-    description: "Space-separated list of directories to scan recursively for source files"
+    description: "Space-separated list of directories to scan recursively"
   config_path:
     required: true
     description: "Path to .clang-tidy config file"
   fail_on_error:
     required: false
     default: "true"
-    description: "If true, exit with error when clang-tidy finds issues"
+    description: "If true, nonzero exit on any accumulated error"
 
 runs:
   using: composite
@@ -23,49 +23,44 @@ runs:
       if: runner.os != 'Windows'
       shell: bash
       run: |
-        any_error=false
+        set +e
+        any_error=0
 
-        IFS=' ' read -r -a dirs <<< "${{ inputs.source_dirs }}"
+        dirs=(${{ inputs.source_dirs }})
+        files=$(find "${dirs[@]}" -type f \
+          \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
 
-        files=()
-        for d in "${dirs[@]}"; do
-          while IFS= read -r f; do
-            files+=("$f")
-          done < <(find "$d" -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \))
+        for f in $files; do
+          clang-tidy -config-file="${{ inputs.config_path }}" \
+                     -p "${{ inputs.build_dir }}" \
+                     -header-filter='.*' "$f"
+          [ $? -ne 0 ] && any_error=1
         done
 
-        for f in "${files[@]}"; do
-          echo "Checking: $f"
-          clang-tidy -config-file="${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" -header-filter='.*' "$f"
-          if [ $? -ne 0 ]; then
-            any_error=true
-          fi
-        done
-
-        if [ "$any_error" = true ] && [ "${{ inputs.fail_on_error }}" = "true" ]; then
+        if [ $any_error -ne 0 ] && [ "${{ inputs.fail_on_error }}" = "true" ]; then
           exit 1
         fi
+        exit 0
 
     - name: Run clang-tidy (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        $anyError = $false
+        $anyError = 0
 
         $dirs = "${{ inputs.source_dirs }}".Split(" ")
-
         $files = foreach ($d in $dirs) {
           Get-ChildItem -Recurse $d -Include *.cpp,*.cc,*.h,*.hpp
         }
 
         foreach ($f in $files) {
-          Write-Host "Checking: $($f.FullName)"
-          & clang-tidy -config-file "${{ inputs.config_path }}" -p "${{ inputs.build_dir }}" $f.FullName
-          if ($LASTEXITCODE -ne 0) {
-            $anyError = $true
-          }
+          & clang-tidy -config-file "${{ inputs.config_path }}" `
+                       -p "${{ inputs.build_dir }}" `
+                       $f.FullName
+          if ($LASTEXITCODE -ne 0) { $anyError = 1 }
         }
 
-        if ($anyError -and "${{ inputs.fail_on_error }}" -eq "true") {
+        if ($anyError -ne 0 -and "${{ inputs.fail_on_error }}" -eq "true") {
           exit 1
         }
+        exit 0
