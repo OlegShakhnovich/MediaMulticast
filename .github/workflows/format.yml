@@ -71,5 +71,3 @@ jobs:
         if: steps.fmt.outputs.rc == '0'
         run: |
           echo "All files are properly formatted."
-
-
