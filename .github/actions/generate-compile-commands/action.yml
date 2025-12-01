@@ -5,9 +5,6 @@ inputs:
   build_dir:
     required: true
     description: "Directory where CMake will configure the build and place compile_commands.json"
-  sysroot:
-    required: false
-    description: "Custom macOS SDK sysroot (optional); if omitted, detected via xcrun"
   compiler:
     required: false
     default: clang

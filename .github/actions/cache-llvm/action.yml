@@ -29,8 +29,6 @@ runs:
     - name: Cache LLVM directory (Linux/macOS)
       if: ${{ inputs.runner != 'windows-latest' }}
       id: cache-llvm-unix
-      env:
-        LLVM_DIR:  $HOME/.cache/llvm-${{ inputs.llvm_version }}
       uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}/llvm

@@ -31,7 +31,7 @@ jobs:
         run: |
           cmake --build build_ninja --target udp_streaming_lib --parallel
           cmake --build build_ninja --target udp_streamer --parallel
-          cmake --build build_ninja --target tests --parallel || true
+          cmake --build build_ninja --target tests --parallel
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

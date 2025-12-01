@@ -13,14 +13,6 @@ add_subdirectory (src/udp_streaming_lib)
 add_subdirectory (src/udp_streamer)
 
 # ------------------------------------------------------------
-# Clang-Tidy integration
-# ------------------------------------------------------------
-if (MSVC)
-    set (CMAKE_RULE_LAUNCH_COMPILE "${CMAKE_SOURCE_DIR}/scripts/msvc_tidy_wrapper.bat")
-endif()
-
-
-# ------------------------------------------------------------
 # Optional examples
 # ------------------------------------------------------------
 if (BUILD_EXAMPLES)
