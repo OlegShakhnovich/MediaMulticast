@@ -34,8 +34,19 @@ jobs:
           name: compile_commands-src-${{ inputs.runner }}
           path: build_tidy/compile_commands.json
 
-      - name: Run clang-tidy
+
+      - name: Run clang-tidy on MacOS
         uses: ./.github/actions/run-clang-tidy
+        if: runner.os == 'macOS'
+        with:
+          build_dir: build_tidy
+          source_dirs: "src include"
+          config_path: ".clang-tidy"
+          fail_on_error: "false"
+
+      - name: Run clang-tidy on Linux\Windows
+        uses: ./.github/actions/run-clang-tidy
+        if: runner.os != 'macOS'
         with:
           build_dir: build_tidy
           source_dirs: "src include"

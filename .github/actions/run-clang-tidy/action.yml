@@ -11,6 +11,10 @@ inputs:
   config_path:
     required: true
     description: "Path to .clang-tidy config file"
+  fail_on_error:
+    required: false
+    default: "true"
+    description: "If true, exit with error when clang-tidy finds issues"
 
 runs:
   using: composite

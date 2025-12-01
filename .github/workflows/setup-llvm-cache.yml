@@ -29,7 +29,6 @@ jobs:
           lookup-only: 'true'
           fail-on-cache-miss: 'false'
 
-
       - name: Download and extract LLVM on Linux
         if: ${{ inputs.runner == 'ubuntu-latest' && steps.cache-llvm.outputs.cache-hit != 'true' }}
         shell: bash
