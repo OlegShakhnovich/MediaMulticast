@@ -61,14 +61,14 @@ public:
         (threadOss << ... << std::forward<Args>(args));
         threadOss << '\n';
 
-        auto OUT = threadOss.str();
+        auto out = threadOss.str();
 
         Sink currentSink;
         {
             const std::scoped_lock LOCK(mutex);
             currentSink = sink;
         }
-        currentSink(std::move(OUT));
+        currentSink(std::move(out));
     }
 
     template <LogLevel Lvl, typename... Args>
