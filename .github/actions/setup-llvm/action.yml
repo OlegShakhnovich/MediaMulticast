@@ -1,0 +1,56 @@
+name: 'Setup LLVM'
+description: 'Setup cached LLVM, add to PATH and verify version'
+
+inputs:
+  runner:
+    required: true
+    description: 'The runner OS (ubuntu-latest, macos-latest, windows-latest)'
+  llvm_version:
+    required: true
+    description: 'The LLVM version to install and verify'
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Cache LLVM
+      uses: ./.github/actions/cache-llvm
+      with:
+        runner: ${{ inputs.runner }}
+        llvm_version: ${{ inputs.llvm_version }}
+        fail-on-cache-miss: 'false'
+
+
+    - name: Add LLVM to PATH on Linux/macOS
+      if: ${{ inputs.runner != 'windows-latest' }}
+      shell: bash
+      run: |
+        echo "${{ github.workspace }}/llvm/bin" >> $GITHUB_PATH
+
+
+    - name: Add LLVM to PATH on Windows
+      if: ${{ inputs.runner == 'windows-latest' }}
+      shell: bash
+      run: |
+        echo "C:\LLVM\bin" >> $GITHUB_PATH
+
+    - name: Check LLVM tools (Linux/macOS)
+      if: ${{ inputs.runner != 'windows-latest' }}
+      shell: bash
+      run: |
+        echo "=== Checking LLVM tools ==="
+        clang --version || echo "clang not found"
+        clang-format --version || echo "clang-format not found"
+        clang-tidy --version || echo "clang-tidy not found"
+
+    - name: Check LLVM tools (Windows)
+      if: ${{ inputs.runner == 'windows-latest' }}
+      shell: pwsh
+      run: |
+        Write-Host "=== Checking LLVM tools ==="
+        clang --version 2>&1 | Out-Host
+        if ($LASTEXITCODE -ne 0) { Write-Host "clang not found" }
+        clang-format --version 2>&1 | Out-Host
+        if ($LASTEXITCODE -ne 0) { Write-Host "clang-format not found" }
+        clang-tidy --version 2>&1 | Out-Host
+        if ($LASTEXITCODE -ne 0) { Write-Host "clang-tidy not found" }

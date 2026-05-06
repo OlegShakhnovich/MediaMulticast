@@ -1,0 +1,73 @@
+name: Format (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      llvm_version:
+        required: true
+        type: string
+            
+permissions:
+  contents: write
+  
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup LLVM ${{ inputs.llvm_version }}
+        uses: ./.github/actions/setup-llvm
+        with:
+          runner: ubuntu-latest
+          llvm_version: ${{ inputs.llvm_version }}
+
+      - name: Check formatting
+        id: fmt
+        run: |
+          set -e
+          rc=0
+          files=$(git ls-files "src" "include" "tests" | grep -E '\.(cpp|cc|hpp|h|c)$' || true)
+          for f in $files; do
+            clang-format --dry-run --Werror -style=file "$f" || rc=1
+          done
+          echo "rc=$rc" >> $GITHUB_OUTPUT
+              
+      - name: Apply format ${{ inputs.llvm_version }} and push
+        if: steps.fmt.outputs.rc == '1'
+        shell: bash
+        run: |
+          # Checking if this is a PR from a fork
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_REPOSITORY" != "${{ github.event.pull_request.head.repo.full_name }}" ]; then
+            echo "Fork PR - skipping auto-push"
+            exit 0
+          fi
+
+          files=$(git ls-files "src" "include" "tests" | grep -E '\.(cpp|cc|hpp|h|c)$' || true)
+          for f in $files; do
+            clang-format -i -style=file "$f"
+          done
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src include tests
+          git diff --cached --quiet || \
+            git commit -m "style: apply clang-format ${{ inputs.llvm_version }}" -a || echo "No changes to commit"
+          
+          # Get the name of the current branch
+          CURRENT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          echo "Current branch: $CURRENT_BRANCH"
+
+          # Push to the current branch
+          git push origin HEAD:$CURRENT_BRANCH
+          echo "Auto-formatting applied. Please review and commit the changes manually."
+          exit 1
+
+      - name: Formatting check passed
+        if: steps.fmt.outputs.rc == '0'
+        run: |
+          echo "All files are properly formatted."

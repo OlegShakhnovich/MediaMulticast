@@ -1,0 +1,59 @@
+name: 'Cache LLVM'
+description: 'Cache LLVM directory with global keys for sharing between PRs'
+
+inputs:
+  runner:
+    required: true
+    description: 'The runner OS (ubuntu-latest, macos-latest, windows-latest)'
+  llvm_version:
+    required: true
+    description: 'The LLVM version to cache'
+  lookup-only:
+    required: false
+    description: 'Whether to only look up the cache without restoring it'
+    default: 'false'
+  fail-on-cache-miss:
+    required: false
+    description: 'Whether to fail the step if the cache is not found'
+    default: 'true'
+
+outputs:
+  cache-hit:
+    description: 'Whether the cache was restored from cache'
+    value: ${{ steps.set-cache-output.outputs.cache-hit }}
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Cache LLVM directory (Linux/macOS)
+      if: ${{ inputs.runner != 'windows-latest' }}
+      id: cache-llvm-unix
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/llvm
+        key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
+        lookup-only: ${{ inputs.lookup-only }}
+        fail-on-cache-miss: ${{ inputs.fail-on-cache-miss }}
+        restore-keys: |
+          global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
+          global-llvm-${{ inputs.llvm_version }}
+
+    - name: Cache LLVM directory (Windows)
+      if: ${{ inputs.runner == 'windows-latest' }}
+      id: cache-llvm-windows
+      uses: actions/cache@v4
+      with:
+        path: "C:/LLVM"
+        key: global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
+        lookup-only: ${{ inputs.lookup-only }}
+        fail-on-cache-miss: ${{ inputs.fail-on-cache-miss }}
+        restore-keys: |
+          global-llvm-${{ inputs.llvm_version }}-${{ inputs.runner }}
+          global-llvm-${{ inputs.llvm_version }}
+
+    - name: Set cache output
+      id: set-cache-output
+      shell: bash
+      run: |
+        echo "cache-hit=${{ steps.cache-llvm-unix.outputs.cache-hit == 'true' || steps.cache-llvm-windows.outputs.cache-hit == 'true' }}" >> $GITHUB_OUTPUT

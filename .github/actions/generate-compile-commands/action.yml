@@ -1,0 +1,28 @@
+name: Generate compile_commands.json
+description: CMake configuration that generates compile_commands.json
+
+inputs:
+  build_dir:
+    required: true
+    description: "Directory where CMake will configure the build and place compile_commands.json"
+  compiler:
+    required: false
+    default: clang
+    description: "C compiler to use with CMake"
+  cxx_compiler:
+    required: false
+    default: clang++
+    description: "C++ compiler to use with CMake"
+  enable_tests:
+    required: false
+    default: 'OFF'
+    description: "Enable building tests"
+
+runs:
+  using: composite
+  steps:
+    
+    - name: Configure CMake
+      shell: pwsh
+      run: |
+        cmake -G Ninja -S . -B "${{ inputs.build_dir }}" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_STANDARD=20 -DCMAKE_C_COMPILER="${{ inputs.compiler }}" -DCMAKE_CXX_COMPILER="${{ inputs.cxx_compiler }}" -DBUILD_TESTS="${{ inputs.enable_tests }}"

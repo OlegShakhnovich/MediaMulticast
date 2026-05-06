@@ -1,0 +1,52 @@
+name: Tidy-src (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      llvm_version:
+        required: true
+        type: string
+
+jobs:
+  tidy-src:
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup LLVM
+        uses: ./.github/actions/setup-llvm
+        with:
+          runner: ${{ inputs.runner }}
+          llvm_version: ${{ inputs.llvm_version }}
+
+      - name: Generate compile_commands.json
+        uses: ./.github/actions/generate-compile-commands
+        with:
+          build_dir: build_tidy
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: compile_commands-src-${{ inputs.runner }}
+          path: build_tidy/compile_commands.json
+
+      - name: Run clang-tidy on MacOS
+        uses: ./.github/actions/run-clang-tidy
+        if: runner.os == 'macOS'
+        with:
+          build_dir: build_tidy
+          source_dirs: "src include"
+          config_path: ".clang-tidy"
+          fail_on_error: "false"
+
+      - name: Run clang-tidy on Linux\Windows
+        uses: ./.github/actions/run-clang-tidy
+        if: runner.os != 'macOS'
+        with:
+          build_dir: build_tidy
+          source_dirs: "src include"
+          config_path: ".clang-tidy"
