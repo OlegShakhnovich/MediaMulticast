@@ -25,12 +25,3 @@ if(CMAKE_CXX_CLANG_TIDY)
         CXX_CLANG_TIDY ""
     )
 endif()
-
-find_program(CLANG_TIDY_EXE NAMES clang-tidy)
-
-if(CLANG_TIDY_EXE)
-    set_target_properties(test_udp_streaming_lib PROPERTIES
-        CXX_CLANG_TIDY
-            "${CLANG_TIDY_EXE};--config-file=${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy"
-    )
-endif()
