@@ -22,7 +22,7 @@ auto makeAddress(const std::string& host, const std::string& port) -> SocketAddr
     SocketAddress res;
     res.length = 0;
 
-    if (net_init()) {
+    if (netInit()) {
         res.errorCode = -1;
         return res;  // Network init error
     };

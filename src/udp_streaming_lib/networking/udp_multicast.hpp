@@ -28,7 +28,7 @@ public:
           streamingAddress(streamingAddress_),
           callback(callback_),
           targetBitrate(targetBitrate_) {
-        net_init();
+        netInit();
     }
 
     size_t stopStreaming() {
