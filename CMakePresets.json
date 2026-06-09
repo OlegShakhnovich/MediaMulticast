@@ -1,0 +1,78 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "default",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "build-main",
+      "inherits": "default",
+      "displayName": "Build (with clang-tidy for main code)",
+      "binaryDir": "${sourceDir}/build/build_vs",
+      "description": "A pre-build step that checks or applies formatting to the entire project and runs clang-tidy on the `src` and `include` directories prior to compilation.",
+      "cacheVariables": {
+        "ENABLE_CLANG_TIDY_PRE_BUILD": "ON",
+        "ENABLE_TIDY_FOR_MAIN": "ON"
+      }
+    },
+    {
+      "name": "build-no-linters",
+      "inherits": "default",
+      "displayName": "Build (without linters)",
+      "description": "Build without clang-tidy and format, standard MSVC.",
+      "binaryDir": "${sourceDir}/build/build_vs",
+      "cacheVariables": {
+        "ENABLE_CLANG_TIDY_PRE_BUILD": "OFF",
+        "ENABLE_TIDY_FOR_MAIN": "OFF"
+      }
+    },
+    {
+      "name": "build-full",
+      "inherits": "default",
+      "displayName": "Build (with clang-tidy for tests)",
+      "binaryDir": "${sourceDir}/build/build_vs_tests",
+      "description": "Building the entire project with `format` and `clang-tidy` checks/application via a pre-build step.",
+      "cacheVariables": {
+        "BUILD_TESTS": "ON",
+        "ENABLE_CLANG_TIDY_PRE_BUILD": "ON",
+        "ENABLE_TIDY_FOR_MAIN": "ON"
+      }
+    },
+    {
+      "name": "build-tests-only",
+      "inherits": "default",
+      "displayName": "Build (tests only, clang-tidy only for tests)",
+      "binaryDir": "${sourceDir}/build/build_vs_tests",
+      "description": "A build process that checks or applies formatting to the entire project and runs `clang-tidy` checks on tests as a pre-build step.",
+      "cacheVariables": {
+        "BUILD_TESTS": "ON",
+        "ENABLE_CLANG_TIDY_PRE_BUILD": "ON",
+        "ENABLE_TIDY_FOR_MAIN": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-no-linters",
+      "configurePreset": "build-no-linters"
+    },
+    {
+      "name": "build-main",
+      "configurePreset": "build-main"
+    },
+    {
+      "name": "build-full",
+      "configurePreset": "build-full"
+    },
+    {
+      "name": "build-tests-only",
+      "configurePreset": "build-tests-only"
+    }
+
+  ]
+}
