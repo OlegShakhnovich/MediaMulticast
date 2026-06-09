@@ -15,7 +15,7 @@ REM Function to build the project using Visual Studio
     set "BUILD_TESTS=OFF"
     
     REM Function to check and apply clang-format
-    call "%COMMON%" check_and_apply_clang_format
+    call "%COMMON%" :check_and_apply_clang_format
     if %ERRORLEVEL% neq 0 (
         call "%COMMON%" :log_message "Failed to check and apply clang format"
         exit /b %ERRORLEVEL%
@@ -28,7 +28,7 @@ REM Function to build the project using Visual Studio
     if "%VS_MAJOR%"=="17" (
         set "GENERATOR=Visual Studio 17 2022"
     ) else (
-        echo Unsupported VS version: %VS_MAJOR%
+        call "%COMMON%" :log_message "Unsupported Visual Studio version: %VS_MAJOR%, expected 17"
         exit /b 1
     )
     call "%COMMON%" :log_message "Using generator: %GENERATOR%"

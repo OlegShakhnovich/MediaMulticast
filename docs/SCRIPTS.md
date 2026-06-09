@@ -1,6 +1,4 @@
-﻿Here is the documentation text again, ready for you to copy and save as a `.md` file.
-
----
+﻿---
 
 # Scripts Documentation
 
@@ -18,7 +16,7 @@ This document describes the build and code quality automation scripts for the pr
   - [Windows](#windows-build-scripts)
   - [Unix](#unix-build-scripts)
 - [Tidy Scripts (clang‑tidy)](#tidy-scripts-clang-tidy)
-- [MSVC Wrappers (Windows only)](#msvc-wrappers-windows-only)
+- [Integration with CMake and Visual Studio (Windows)](#integration-with-cmake-and-visual-studio-windows)
 - [Usage Examples](#usage-examples)
 - [Requirements](#requirements)
 - [Notes](#notes)
@@ -33,7 +31,7 @@ The scripts automate the following tasks:
 - **Static analysis** with `clang-tidy`
 - **Generation of `compile_commands.json`** using CMake + Ninja
 - **Building** the project with either Ninja or Visual Studio 2022
-- **Integration with Visual Studio** – running `clang-tidy` and `clang-format` before an MSVC build
+- **Integration with Visual Studio** – running `clang-tidy` and `clang-format` as a pre‑build step (via CMake custom targets)
 
 All scripts share common functions (logging, file collection, directory cleanup) defined in `common.bat` / `common.sh`. Configuration (paths, tool versions, directories) is kept in `config.bat` / `config.sh`.
 
@@ -63,9 +61,7 @@ project_root/
 │           ├── build_ninja.bat
 │           ├── build_vs.bat
 │           ├── run_tidy.bat
-│           ├── run_tidy_tests.bat
-│           ├── msvc_tidy_wrapper.bat
-│           └── msvc_tidy_wrapper_tests.bat
+│           └── run_tidy_tests.bat
 ```
 
 All paths inside the scripts are derived relative to the script location (e.g., `../../..` points to `project_root`).
@@ -89,7 +85,7 @@ Main functions:
 | `:update_compile_commands` | Configures CMake with Ninja generator, exports `compile_commands.json`. Calls `:check_and_apply_clang_format` first. |
 | `:run_clang_tidy` | Generates `compile_commands.json`, collects sources, runs `clang-tidy` with `--warnings-as-errors=*`. |
 | `:get_num_jobs` | Returns the number of CPU cores (reads `NUMBER_OF_PROCESSORS`). |
-| `:detect_vs_major` | Uses `vswhere.exe` to detect Visual Studio version; requires VS2022 (major version 17). |
+| `:detect_vs_major` | Uses `vswhere.exe` to detect the installed Visual Studio version. Outputs the major version number (e.g., `17`) to stdout. Returns `0` on success, non‑zero if detection fails. Does **not** validate the version; the caller is responsible for checking against supported versions. |
 
 **`config.bat`**  
 Sets environment variables:
@@ -138,7 +134,7 @@ Paths can be overridden inside `config.bat` or `config.sh`.
 On Windows, the scripts assume:
 
 - Visual Studio 2022 is installed (detected via `vswhere`).
-- MSVC compiler is available (used by wrapper scripts).
+- The build scripts rely on CMake to locate the MSVC compiler.
 
 On Unix, the scripts assume:
 
@@ -159,7 +155,7 @@ All build scripts source the common scripts, set up required environment variabl
 
 **`build_vs.bat`**  
 - Runs `:check_and_apply_clang_format` first.  
-- Detects VS version (requires VS2022).  
+- Calls `:detect_vs_major` to obtain the Visual Studio major version, then verifies it is `17` (VS2022).  
 - Configures CMake with generator `Visual Studio 17 2022` (x64).  
 - Builds with `cmake --build --parallel`.  
 - Installs to `%INSTALL_DIR%\vs`.  
@@ -191,46 +187,64 @@ Each script:
 3. Collects source files and invokes `clang-tidy` on each, treating all warnings as errors (`--warnings-as-errors=*`).
 4. Exits with non‑zero code if any violation is found.
 
+These scripts can be executed directly from the command line. They are also used as **pre‑build steps** when the project is configured with CMake and Visual Studio (see next section).
+
 ---
 
-## MSVC Wrappers (Windows only)
+## Integration with CMake and Visual Studio (Windows)
 
-The wrapper scripts are designed to be used **inside a Visual Studio 2022 Developer Command Prompt**. They combine static analysis and formatting with an actual MSVC build.
+For Windows developers using Visual Studio 2022, the project’s `CMakeLists.txt` provides an alternative to calling the scripts manually:
 
-**`msvc_tidy_wrapper.bat`**  
-- Runs `:run_clang_tidy` for `src/` and `include/` (using `%ROOT_DIR%/.clang-tidy`, BUILD_TESTS=OFF).  
-- Then calls `:compile_with_msvc` (a function that must be defined elsewhere – in the provided code it is referenced but not implemented; the user should implement it or the wrapper will fail).  
+- CMake options `ENABLE_CLANG_TIDY_PRE_BUILD` and `ENABLE_TIDY_FOR_MAIN` control whether `run_tidy.bat` and `run_tidy_tests.bat` are invoked as **custom targets** before the actual compilation.
+- Pre‑configured presets in `CMakePresets.json` give easy‑to‑use profiles:
+  - `build-no-linters` – no linters, plain MSVC build.
+  - `build-main` – runs `run_tidy.bat` (checks `src/` and `include/`) before building the main targets.
+  - `build-full` – runs both `run_tidy.bat` and `run_tidy_tests.bat`.
+  - `build-tests-only` – runs only `run_tidy_tests.bat`.
 
-**`msvc_tidy_wrapper_tests.bat`**  
-- Same but for the `tests/` directory, using `%TESTS_DIR%/.clang-tidy` and BUILD_TESTS=ON.  
-
-> **Note:** The `:compile_with_msvc` subroutine is **not** provided in the snippets. It is expected to invoke the MSVC compiler (`cl.exe`) with appropriate flags to build the project. The wrapper scripts are examples of how to integrate `clang-tidy` into an MSVC‑based workflow.
+When using these presets, the scripts are executed **once** per build, and any violation will stop the build.
 
 ---
 
 ## Usage Examples
 
-### Windows
+### Windows – Direct script execution
 
-Open a **VS2022 Developer Command Prompt**, then:
+Open a **VS2022 Developer Command Prompt** (or any terminal with LLVM tools in PATH):
 
 ```cmd
-:: Run clang-tidy on src/ and include/
 cd C:\path\to\project_root\scripts\windows\build_scripts
+
+:: Run clang-tidy on src/ and include/
 run_tidy.bat
 
 :: Run clang-tidy on tests/
 run_tidy_tests.bat
 
-:: Build with Ninja (requires Ninja in PATH)
+:: Build with Ninja
 build_ninja.bat
 
-:: Build with Visual Studio
+:: Build with Visual Studio (runs clang-format only, no tidy pre‑build)
 build_vs.bat
-
-:: Run clang-tidy then MSVC build (needs :compile_with_msvc implemented)
-msvc_tidy_wrapper.bat
 ```
+
+### Windows – Using CMake presets (recommended for VS users)
+
+```cmd
+cd C:\path\to\project_root
+
+:: Configure with a preset that enables pre‑build tidy for main code
+cmake --preset build-main
+
+:: Build (pre‑build tidy will run automatically)
+cmake --build --preset build-main --config Debug
+
+:: For tests, use the corresponding preset
+cmake --preset build-full
+cmake --build --preset build-full --config Debug --target test_udp_streaming_lib
+```
+
+> **Note about tests:** Because `tests` is added with `EXCLUDE_FROM_ALL`, the test executable is **not** built by the default target. You must explicitly specify its name (e.g., `test_udp_streaming_lib`) as shown above.
 
 ### Unix (Linux / macOS)
 
@@ -256,13 +270,13 @@ All scripts exit with a non‑zero code on failure.
 ### Windows
 - **Visual Studio 2022** (Community, Professional, or Enterprise) with C++ toolchain.
 - **LLVM 21.1.6** – installed and the `bin` folder configured in `config.bat`.
-- **CMake** (3.15+) – in `PATH`.
+- **CMake** (3.22+) – in `PATH`.
 - **Ninja** – in `PATH` (for `build_ninja.bat`).
 - **`vswhere.exe`** – usually present with Visual Studio.
 
 ### Unix
 - **LLVM 21.1.6** – `clang-format` and `clang-tidy` must be reachable (paths detected automatically).
-- **CMake** (3.15+)
+- **CMake** (3.22+)
 - **Ninja**
 - **Bash** 4+ and standard Unix tools (`find`, `grep`, etc.)
 
@@ -271,13 +285,11 @@ All scripts exit with a non‑zero code on failure.
 ## Notes
 
 - The Windows scripts rely on **delayed expansion** (`enabledelayedexpansion`) and use `call :function` to simulate subroutines.
-- The `:compile_with_msvc` function is **placeholder** – you must implement it according to your project’s MSVC build steps (e.g., invoking `cl.exe` on specific source files, linking, etc.).
 - The scripts assume the project layout: `include/`, `src/`, `tests/` are direct subdirectories of `project_root`.
 - clang‑tidy runs with `--warnings-as-errors=*`, meaning any tidy warning will fail the script.
 - Version check for LLVM tools is **strict** – only 21.1.6 is accepted. Modify the `REQUIRED_VERSION` / `REQUIRED_LLVM_VERSION` variables if a different version is needed.
 - For Unix, the `CLANG_FORMAT` and `CLANG_TIDY` paths are determined automatically; override them in `config.sh` if necessary.
 - The scripts do **not** modify system‑wide settings – all paths are relative or derived from the script’s location.
+- **Tests**: Because `tests` is added via `add_subdirectory(tests EXCLUDE_FROM_ALL)`, the test executable is **not** built by default. When using CMake presets, explicitly specify the test target name (`test_udp_streaming_lib`) or configure a custom build preset with `"targets": ["test_udp_streaming_lib"]`.
 
 ---
-
-*Documentation generated for the current script implementation. For questions or improvements, please refer to the script comments or contact the maintainer.*

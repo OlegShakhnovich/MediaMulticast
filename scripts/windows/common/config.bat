@@ -5,7 +5,6 @@ REM Configuration settings
 set "LLVM_BIN=C:/PROGRA~1/LLVM/bin"
 set "CLANG_TIDY=%LLVM_BIN%\clang-tidy.exe"
 set "CLANG_FORMAT=%LLVM_BIN%\clang-format.exe"
-set "MSVC_CL=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\Hostx64\x64\cl.exe"
 set "ROOT_DIR=%~dp0..\..\..%"
 
 REM Normalize the path to remove ".." and obtain an absolute path.

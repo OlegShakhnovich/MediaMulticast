@@ -178,26 +178,6 @@ REM ------------------------------------------------------------
     exit /b 0
 
 REM ------------------------------------------------------------
-REM compile_with_msvc
-REM   Compiles a single file using MSVC cl.exe.
-REM   Args: arguments to pass to cl.exe (e.g. /c, /I, etc.)
-REM   Uses global: MSVC_CL
-REM   Returns: exit code 0 on success, non-zero on failure
-REM ------------------------------------------------------------
-:compile_with_msvc
-    if "%~1"=="" (
-        call :log_message "No arguments passed to cl.exe"
-        exit /b 1
-    )
-    "%MSVC_CL%" %*
-    if %ERRORLEVEL% neq 0 (
-        call :log_message "MSVC compilation failed."
-        exit /b %ERRORLEVEL%
-    )
-    call :log_message "MSVC compilation finished successfully."
-    exit /b 0
-
-REM ------------------------------------------------------------
 REM detect_vs_major
 REM   Detects the installed Visual Studio version using vswhere.
 REM   Requires MSVC component. Exits with error if version is not 17 (VS2022).
@@ -209,10 +189,6 @@ REM ------------------------------------------------------------
     for /f "tokens=1 delims=." %%a in ("%VS_VER%") do set "MAJOR_VER=%%a"
     if "%MAJOR_VER%"=="" (
         call :log_message "Failed to detect Visual Studio version"
-        exit /b 1
-    )
-    if not "%MAJOR_VER%"=="17" (
-        call :log_message "Unsupported Visual Studio version: %MAJOR_VER%, supported only 22 version"
         exit /b 1
     )
     call :log_message %MAJOR_VER%
